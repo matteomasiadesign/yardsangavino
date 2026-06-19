@@ -2,47 +2,59 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yard | Admin</title>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-</head>
-<body style="background:#0a0a0a; color:white; font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+    <script type="module">
+        import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+        
+        const supabase = createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-    <div id="app" style="background:#141414; padding:40px; border-radius:20px; width:300px; border:1px solid #2d2d2d;">
-        <h2 style="text-align:center">Area Admin</h2>
-        <input type="password" id="password" placeholder="Password" style="width:100%; padding:10px; margin-bottom:10px; border-radius:5px; border:none;">
-        <span id="toggleBtn" style="color:#30d158; cursor:pointer; font-size:12px;">Mostra Password</span>
-        <button id="loginBtn" style="width:100%; padding:10px; margin-top:20px; background:#30d158; border:none; border-radius:5px; font-weight:bold; cursor:pointer;">ACCEDI</button>
+        // Renderizziamo il form quando la pagina è pronta
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM caricato");
+
+            // Evento per Mostra Password
+            document.getElementById('toggleBtn').addEventListener('click', function() {
+                const pw = document.getElementById('password');
+                if (pw.type === 'password') {
+                    pw.type = 'text';
+                    this.textContent = 'Nascondi';
+                } else {
+                    pw.type = 'password';
+                    this.textContent = 'Mostra';
+                }
+            });
+
+            // Evento per Login
+            document.getElementById('loginBtn').addEventListener('click', async () => {
+                const pass = document.getElementById('password').value;
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: 'adminyard@yard.it',
+                    password: pass
+                });
+                if (error) {
+                    alert("Errore: " + error.message);
+                } else {
+                    location.reload();
+                }
+            });
+        });
+    </script>
+    <style>
+        body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #141414; padding: 40px; border-radius: 20px; width: 300px; border: 1px solid #2d2d2d; text-align: center; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; background: #1c1c1e; color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #30d158; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Area Admin</h2>
+        <input type="password" id="password" placeholder="Password">
+        <span id="toggleBtn" style="color:#30d158; cursor:pointer; font-size:12px; display:block; margin-bottom:20px;">Mostra</span>
+        <button id="loginBtn">ACCEDI</button>
     </div>
 
-    <script>
-        console.log("Script caricato");
-        
-        // Inizializzazione
-        const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
-
-        // Logica Password
-        document.getElementById('toggleBtn').onclick = function() {
-            console.log("Toggle password premuto");
-            const pw = document.getElementById('password');
-            this.textContent = (pw.type === "password") ? "Nascondi" : "Mostra";
-            pw.type = (pw.type === "password") ? "text" : "password";
-        };
-
-        // Logica Login
-        document.getElementById('loginBtn').onclick = async function() {
-            console.log("Bottone login premuto");
-            const pass = document.getElementById('password').value;
-            const email = "adminyard@yard.it";
-            
-            const { error } = await supabase.auth.signInWithPassword({ email, pass });
-            if (error) {
-                console.error("Errore Supabase:", error);
-                alert("Errore: " + error.message);
-            } else {
-                console.log("Login riuscito");
-                location.reload();
-            }
-        };
-    </script>
 </body>
 </html>
