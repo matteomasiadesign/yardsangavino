@@ -3,176 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Admin Luxury</title>
+    <title>Yard | Menù</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg: #0a0a0a;
-            --surface: #141414;
-            --text-primary: #f5f5f7;
-            --text-secondary: #86868b;
-            --accent: #30d158;
-            --border: #2d2d2d;
-            --radius: 16px;
+            --bg-color: #0f0f0f;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent: #39FF14;
+            --text: #ffffff;
+            --glow: 0 0 15px rgba(57, 255, 20, 0.3);
         }
 
-        body { 
-            background-color: var(--bg); 
-            color: var(--text-primary); 
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif; 
-            padding: 40px 20px;
-            line-height: 1.5;
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
 
-        .container { max-width: 800px; margin: auto; }
+        header { margin: 40px 0; text-align: center; }
+        h1 { font-family: 'Courier New', Courier, monospace; font-weight: 900; font-size: 2.5rem; letter-spacing: 4px; color: var(--text); margin: 10px 0; text-shadow: var(--glow); }
 
-        h1 { font-weight: 600; font-size: 2rem; margin-bottom: 30px; letter-spacing: -0.5px; }
+        .menu-wrapper { width: 100%; max-width: 500px; }
+        .category { background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--border-color); border-radius: 20px; margin-bottom: 15px; }
+        .cat-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--accent); }
+        .items { padding: 0 20px 20px 20px; display: none; }
+        .items.active { display: block; }
+        .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.95rem; }
 
-        .card { 
-            background: var(--surface); 
-            padding: 30px; 
-            border-radius: var(--radius); 
-            margin-bottom: 30px;
-            border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .search-input { 
-            width: 100%; 
-            padding: 12px 16px; 
-            background: #1c1c1e; 
-            border: 1px solid var(--border); 
-            border-radius: 10px; 
-            color: white; 
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-
-        .form-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        
-        input, select { 
-            flex: 1; 
-            padding: 12px; 
-            border-radius: 10px; 
-            border: 1px solid var(--border); 
-            background: #1c1c1e; 
-            color: white; 
-        }
-
-        button { 
-            padding: 10px 20px; 
-            border-radius: 10px; 
-            border: none; 
-            background: var(--accent); 
-            color: #000; 
-            font-weight: 600; 
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        button:hover { opacity: 0.8; }
-
-        table { width: 100%; border-collapse: separate; border-spacing: 0 10px; }
-        th { color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 10px; }
-        td { padding: 15px; background: #1c1c1e; }
-        td:first-child { border-radius: 10px 0 0 10px; }
-        td:last-child { border-radius: 0 10px 10px 0; }
-
-        .status-pill { font-size: 0.7rem; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
-        .active { color: var(--accent); background: rgba(48, 209, 88, 0.1); }
-        .hidden { color: #86868b; background: rgba(255,255,255,0.05); }
+        footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #86868b; }
+        .insta-link { color: var(--accent); text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Dashboard YARD</h1>
+    <header>
+        <h1>MENÙ</h1>
+    </header>
 
-    <div class="card">
-        <h2>Categorie</h2>
-        <input type="text" class="search-input" placeholder="Cerca categorie..." onkeyup="filterTable('cat-table', this.value)">
-        <table id="cat-table">
-            <thead><tr><th>Nome</th><th>Stato</th><th></th></tr></thead>
-            <tbody></tbody>
-        </table>
+    <div class="menu-wrapper" id="menu-container">
+        <p style="text-align:center">Caricamento menù...</p>
     </div>
 
-    <div class="card">
-        <h2>Prodotti</h2>
-        <div class="form-group">
-            <input type="text" id="prod-search" class="search-input" placeholder="🔍 Cerca per nome..." onkeyup="filterProducts()">
-            <select id="p-filter-cat" onchange="filterProducts()">
-                <option value="">Tutte le categorie</option>
-            </select>
-        </div>
-        <div class="form-group" style="border-top: 1px solid var(--border); padding-top: 20px;">
-            <input type="text" id="p-name" placeholder="Nuovo prodotto">
-            <input type="number" id="p-price" placeholder="Prezzo">
-            <button onclick="addProduct()">Aggiungi</button>
-        </div>
-        <table id="products-table">
-            <thead><tr><th>Prodotto</th><th>Prezzo</th><th>Stato</th><th></th></tr></thead>
-            <tbody></tbody>
-        </table>
-    </div>
-</div>
+    <footer>
+        <p>YARD | Chiosco del parco</p>
+        <p>Parco di San Gavino, Porto Torres (SS)</p>
+        <a href="https://www.instagram.com/yardsangavino/" class="insta-link" target="_blank">Instagram 📷</a>
+        <p style="margin-top:15px">Designed by Matteo Masia</p>
+    </footer>
 
-<script>
-    const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+        const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    async function loadData() {
-        const { data: cats } = await supabase.from('categories').select('*');
-        const { data: prods } = await supabase.from('products').select('*');
+        async function loadMenu() {
+            const { data: cats } = await supabase.from('categories').select('*').eq('is_visible', true).order('order_index');
+            const { data: prods } = await supabase.from('products').select('*').eq('is_visible', true).order('category_id');
 
-        // Populate Category Filter
-        const catSelect = document.getElementById('p-filter-cat');
-        catSelect.innerHTML = '<option value="">Tutte le categorie</option>';
-        cats.forEach(c => {
-            catSelect.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-        });
+            const container = document.getElementById('menu-container');
+            container.innerHTML = '';
 
-        const catBody = document.querySelector('#cat-table tbody');
-        catBody.innerHTML = cats.map(c => `
-            <tr>
-                <td>${c.name}</td>
-                <td><span class="status-pill ${c.is_visible?'active':'hidden'}">${c.is_visible?'ATTIVO':'NASCOSTO'}</span></td>
-                <td style="text-align:right"><button onclick="toggleCat(${c.id}, ${c.is_visible})">Cambia</button></td>
-            </tr>
-        `).join('');
+            cats.forEach(cat => {
+                const catProducts = prods.filter(p => p.category_id === cat.id);
+                if (catProducts.length === 0) return;
 
-        const prodBody = document.querySelector('#products-table tbody');
-        prodBody.innerHTML = prods.map(p => `
-            <tr data-category-id="${p.category_id}" data-name="${p.name.toLowerCase()}">
-                <td>${p.name}</td>
-                <td>${p.price}€</td>
-                <td><span class="status-pill ${p.is_visible?'active':'hidden'}">${p.is_visible?'ON':'OFF'}</span></td>
-                <td style="text-align:right"><button onclick="toggleProd(${p.id}, ${p.is_visible})">Toggle</button></td>
-            </tr>
-        `).join('');
-    }
-
-    function filterProducts() {
-        const search = document.getElementById('prod-search').value.toLowerCase();
-        const catId = document.getElementById('p-filter-cat').value;
-        const rows = document.querySelectorAll('#products-table tbody tr');
-        
-        rows.forEach(row => {
-            const matchSearch = row.dataset.name.includes(search);
-            const matchCat = catId === "" || row.dataset.categoryId === catId;
-            row.style.display = (matchSearch && matchCat) ? "" : "none";
-        });
-    }
-
-    function filterTable(tableId, query) {
-        const rows = document.getElementById(tableId).getElementsByTagName('tr');
-        for (let i = 1; i < rows.length; i++) {
-            rows[i].style.display = rows[i].textContent.toLowerCase().includes(query.toLowerCase()) ? "" : "none";
+                const div = document.createElement('div');
+                div.className = 'category';
+                div.innerHTML = `
+                    <div class="cat-header">${cat.name.toUpperCase()} <span>▼</span></div>
+                    <div class="items">
+                        ${catProducts.map(p => `<div class="row"><span>${p.name}</span><span>${p.price}€</span></div>`).join('')}
+                    </div>
+                `;
+                
+                div.querySelector('.cat-header').onclick = function() {
+                    document.querySelectorAll('.items').forEach(i => i.classList.remove('active'));
+                    this.nextElementSibling.classList.add('active');
+                    this.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                };
+                container.appendChild(div);
+            });
         }
-    }
 
-    loadData();
-</script>
+        loadMenu();
+    </script>
 </body>
 </html>
