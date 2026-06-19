@@ -2,63 +2,51 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Admin Luxury</title>
+    <title>Yard | Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        :root { --bg: #0a0a0a; --surface: #141414; --text-primary: #f5f5f7; --accent: #30d158; --border: #2d2d2d; }
-        body { background-color: var(--bg); color: var(--text-primary); font-family: -apple-system, sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .card { background: var(--surface); padding: 30px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 20px; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); background: #1c1c1e; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--accent); font-weight: bold; cursor: pointer; }
-    </style>
 </head>
-<body>
+<body style="background:#0a0a0a; color:white; font-family:sans-serif; text-align:center; padding-top:50px;">
 
-<div class="container" id="app">
-    <p style="text-align:center">Caricamento...</p>
-</div>
+    <div id="app">Verifica connessione in corso...</div>
 
-<script>
-    const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+    <script>
+        // Inizializzazione
+        const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-    async function checkAuth() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            document.getElementById('app').innerHTML = `
-                <div class="card">
-                    <h2 style="text-align:center">Area Admin</h2>
-                    <input type="email" id="email" placeholder="Email">
-                    <input type="password" id="password" placeholder="Password">
-                    <button onclick="login()">ACCEDI</button>
-                </div>
-            `;
-        } else {
-            // Se loggato, mostra l'interfaccia (qui potresti richiamare loadData)
-            document.getElementById('app').innerHTML = `
-                <h1>Dashboard YARD</h1>
-                <div class="card">
-                    <button onclick="logout()" style="background: #ff453a;">LOGOUT</button>
-                </div>
-            `;
+        async function init() {
+            try {
+                // Test minimo: proviamo a leggere la sessione
+                const { data: { session } } = await supabase.auth.getSession();
+                
+                if (!session) {
+                    document.getElementById('app').innerHTML = `
+                        <h2>Login Admin</h2>
+                        <input type="email" id="email" placeholder="Email"><br><br>
+                        <input type="password" id="password" placeholder="Password"><br><br>
+                        <button onclick="login()">ACCEDI</button>
+                    `;
+                } else {
+                    document.getElementById('app').innerHTML = "<h1>Benvenuto Admin</h1><button onclick='logout()'>Logout</button>";
+                }
+            } catch (err) {
+                document.getElementById('app').innerHTML = "Errore critico: " + err.message;
+            }
         }
-    }
 
-    async function login() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) alert(error.message);
-        else location.reload();
-    }
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+            else location.reload();
+        }
 
-    async function logout() {
-        await supabase.auth.signOut();
-        location.reload();
-    }
+        async function logout() {
+            await supabase.auth.signOut();
+            location.reload();
+        }
 
-    checkAuth();
-</script>
+        init();
+    </script>
 </body>
 </html>
