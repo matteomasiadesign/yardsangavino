@@ -17,7 +17,8 @@
 <body>
 
 <div class="container" id="app">
-    </div>
+    <p style="text-align:center">Caricamento...</p>
+</div>
 
 <script>
     const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
@@ -34,7 +35,13 @@
                 </div>
             `;
         } else {
-            renderAdminPanel();
+            // Se loggato, mostra l'interfaccia (qui potresti richiamare loadData)
+            document.getElementById('app').innerHTML = `
+                <h1>Dashboard YARD</h1>
+                <div class="card">
+                    <button onclick="logout()" style="background: #ff453a;">LOGOUT</button>
+                </div>
+            `;
         }
     }
 
@@ -44,19 +51,6 @@
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) alert(error.message);
         else location.reload();
-    }
-
-    function renderAdminPanel() {
-        document.getElementById('app').innerHTML = `
-            <h1>Dashboard YARD</h1>
-            <div class="card">
-                <button onclick="logout()" style="background: #ff453a;">LOGOUT</button>
-            </div>
-            <div class="card">
-                <h2>Sei loggato correttamente</h2>
-                <p>Ora puoi gestire i tuoi prodotti dal database.</p>
-            </div>
-        `;
     }
 
     async function logout() {
