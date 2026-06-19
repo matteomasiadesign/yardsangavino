@@ -2,30 +2,85 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yard | Menu</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; }
-        .menu-item { border-bottom: 1px solid #333; padding: 10px 0; }
+        :root { --bg: #0a0a0a; --text: #f5f5f7; --accent: #d4af37; --border: #2d2d2d; }
+        body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', -apple-system, sans-serif; margin: 0; padding: 0; }
+        header { text-align: center; padding: 40px 20px 20px; border-bottom: 1px solid var(--border); }
+        .logo { max-width: 120px; margin-bottom: 15px; } /* Inserisci qui l'URL del tuo logo nel tag img sotto */
+        h1 { font-weight: 300; letter-spacing: 4px; text-transform: uppercase; margin: 0; font-size: 22px; color: var(--accent); }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        
+        /* Categorie a cascata */
+        details { background: #141414; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
+        summary { padding: 18px; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none; outline: none; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: '+'; font-size: 24px; color: var(--accent); transition: 0.3s; }
+        details[open] summary::after { content: '−'; }
+        
+        /* Prodotti */
+        .product-list { padding: 0 18px 18px; }
+        .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
+        .product-item:last-child { border-bottom: none; }
+        .product-name { font-weight: 400; font-size: 16px; }
+        .product-price { font-weight: 300; color: var(--accent); font-size: 16px; }
+        .loading { text-align: center; padding: 40px; color: #888; }
     </style>
 </head>
 <body>
-    <h1>Menu</h1>
-    <div id="menu-container">Caricamento menu...</div>
+
+    <header>
+        <img src="https://via.placeholder.com/120x60/141414/d4af37?text=YARD+LOGO" alt="Yard Logo" class="logo">
+        <h1>Menu</h1>
+    </header>
+
+    <div class="container" id="menu-container">
+        <div class="loading">Caricamento del menu in corso...</div>
+    </div>
 
     <script>
         const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
         async function loadMenu() {
+            // Assicurati che la tabella su Supabase si chiami 'prodotti' e abbia le colonne 'nome', 'prezzo', 'categoria'
             const { data, error } = await sb.from('prodotti').select('*');
+            
+            const container = document.getElementById('menu-container');
             if (error) {
-                document.getElementById('menu-container').innerHTML = "Errore caricamento menu.";
-            } else {
-                document.getElementById('menu-container').innerHTML = data.map(item => 
-                    `<div class="menu-item">${item.nome} - €${item.prezzo}</div>`
-                ).join('');
+                container.innerHTML = `<div class="loading">Errore: ${error.message}</div>`;
+                return;
             }
+
+            // Raggruppa i prodotti per categoria
+            const categories = {};
+            data.forEach(item => {
+                const cat = item.categoria || 'Altro';
+                if (!categories[cat]) categories[cat] = [];
+                categories[cat].push(item);
+            });
+
+            // Genera l'HTML a cascata
+            let html = '';
+            for (const [catName, products] of Object.entries(categories)) {
+                html += `
+                    <details>
+                        <summary>${catName}</summary>
+                        <div class="product-list">
+                            ${products.map(p => `
+                                <div class="product-item">
+                                    <span class="product-name">${p.nome}</span>
+                                    <span class="product-price">€${parseFloat(p.prezzo).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                `;
+            }
+            container.innerHTML = html || '<div class="loading">Nessun prodotto trovato nel menu.</div>';
         }
+
         loadMenu();
     </script>
 </body>
