@@ -2,62 +2,62 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Yard | Admin</title>
+    <title>Yard | Admin Luxury</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --bg: #0a0a0a; --surface: #141414; --text-primary: #f5f5f7; --accent: #30d158; --border: #2d2d2d; }
+        body { background-color: var(--bg); color: var(--text-primary); font-family: -apple-system, sans-serif; padding: 40px 20px; display: flex; justify-content: center; }
+        .card { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        h2 { margin-bottom: 30px; font-weight: 600; }
+        .input-group { position: relative; margin-bottom: 20px; }
+        input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: #1c1c1e; color: white; box-sizing: border-box; }
+        .toggle-pw { position: absolute; right: 15px; top: 14px; cursor: pointer; color: var(--accent); font-size: 0.8rem; }
+        button { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--accent); font-weight: 700; cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.9; }
+    </style>
 </head>
-<body style="background:#0a0a0a; color:white; font-family:sans-serif; text-align:center; padding-top:50px;">
+<body>
 
-    <div id="app">Inizializzazione sistema...</div>
+<div id="app" class="card">
+    <h2 style="text-align:center">Area Admin</h2>
+    <input type="hidden" id="email" value="adminyard@yard.it">
+    
+    <div class="input-group">
+        <input type="password" id="password" placeholder="Password">
+        <span class="toggle-pw" onclick="togglePassword()">Mostra</span>
+    </div>
+    <button onclick="doLogin()">ACCEDI</button>
+</div>
 
-    <script>
-        // Controllo se supabase è stato caricato correttamente
-        if (typeof supabase === 'undefined') {
-            document.getElementById('app').innerHTML = "Errore: Libreria Supabase non caricata.";
-        } else {
-            const _supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+<script>
+    const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-            async function startApp() {
-                try {
-                    console.log("Controllo sessione...");
-                    const { data: { session }, error } = await _supabase.auth.getSession();
-                    
-                    if (error) throw error;
+    function togglePassword() {
+        const pw = document.getElementById('password');
+        const span = document.querySelector('.toggle-pw');
+        if (pw.type === "password") { pw.type = "text"; span.textContent = "Nascondi"; }
+        else { pw.type = "password"; span.textContent = "Mostra"; }
+    }
 
-                    if (!session) {
-                        document.getElementById('app').innerHTML = `
-                            <h2>Login Admin</h2>
-                            <input type="email" id="email" placeholder="Email" style="padding:10px; border-radius:5px;"><br><br>
-                            <input type="password" id="password" placeholder="Password" style="padding:10px; border-radius:5px;"><br><br>
-                            <button onclick="doLogin()" style="padding:10px 20px; cursor:pointer;">ACCEDI</button>
-                        `;
-                    } else {
-                        document.getElementById('app').innerHTML = "<h1>Benvenuto Admin</h1><button onclick='doLogout()'>Logout</button>";
-                    }
-                } catch (err) {
-                    document.getElementById('app').innerHTML = "Errore caricamento: " + err.message;
-                    console.error(err);
-                }
-            }
+    async function doLogin() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) alert("Credenziali errate");
+        else location.reload();
+    }
 
-            async function doLogin() {
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const { error } = await _supabase.auth.signInWithPassword({ email, password });
-                if (error) alert(error.message);
-                else location.reload();
-            }
-
-            async function doLogout() {
-                await _supabase.auth.signOut();
-                location.reload();
-            }
-
-            // Esponi le funzioni al browser
-            window.doLogin = doLogin;
-            window.doLogout = doLogout;
-
-            startApp();
+    async function checkAuth() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            document.getElementById('app').innerHTML = `
+                <h2>Benvenuto, Admin</h2>
+                <button onclick="supabase.auth.signOut().then(()=>location.reload())" style="background: #ff453a;">LOGOUT</button>
+                <div style="margin-top:20px; color:#86868b">Il pannello di gestione è attivo.</div>
+            `;
         }
-    </script>
+    }
+    checkAuth();
+</script>
 </body>
 </html>
