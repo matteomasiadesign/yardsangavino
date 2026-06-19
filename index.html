@@ -2,92 +2,65 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Menù</title>
+    <title>Yard | Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-color: #0f0f0f;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --accent: #39FF14;
-            --text: #ffffff;
-            --glow: 0 0 15px rgba(57, 255, 20, 0.3);
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
-        }
-
-        header { margin: 40px 0; text-align: center; }
-        h1 { font-family: 'Courier New', Courier, monospace; font-weight: 900; font-size: 2.5rem; letter-spacing: 4px; color: var(--text); margin: 10px 0; text-shadow: var(--glow); }
-
-        .menu-wrapper { width: 100%; max-width: 500px; }
-        .category { background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--border-color); border-radius: 20px; margin-bottom: 15px; }
-        .cat-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--accent); }
-        .items { padding: 0 20px 20px 20px; display: none; }
-        .items.active { display: block; }
-        .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.95rem; }
-
-        footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #86868b; }
-        .insta-link { color: var(--accent); text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 20px; }
+        .card { background: #141414; padding: 30px; border-radius: 16px; border: 1px solid #2d2d2d; max-width: 600px; margin: auto; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1c1c1e; color: white; }
+        button { background: #30d158; border: none; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>MENÙ</h1>
-    </header>
+<div id="app" class="card">
+    <h2>Caricamento...</h2>
+</div>
 
-    <div class="menu-wrapper" id="menu-container">
-        <p style="text-align:center">Caricamento menù...</p>
-    </div>
+<script>
+    const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-    <footer>
-        <p>YARD | Chiosco del parco</p>
-        <p>Parco di San Gavino, Porto Torres (SS)</p>
-        <a href="https://www.instagram.com/yardsangavino/" class="insta-link" target="_blank">Instagram 📷</a>
-        <p style="margin-top:15px">Designed by Matteo Masia</p>
-    </footer>
-
-    <script>
-        const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        async function loadMenu() {
-            const { data: cats } = await supabase.from('categories').select('*').eq('is_visible', true).order('order_index');
-            const { data: prods } = await supabase.from('products').select('*').eq('is_visible', true).order('category_id');
-
-            const container = document.getElementById('menu-container');
-            container.innerHTML = '';
-
-            cats.forEach(cat => {
-                const catProducts = prods.filter(p => p.category_id === cat.id);
-                if (catProducts.length === 0) return;
-
-                const div = document.createElement('div');
-                div.className = 'category';
-                div.innerHTML = `
-                    <div class="cat-header">${cat.name.toUpperCase()} <span>▼</span></div>
-                    <div class="items">
-                        ${catProducts.map(p => `<div class="row"><span>${p.name}</span><span>${p.price}€</span></div>`).join('')}
-                    </div>
-                `;
-                
-                div.querySelector('.cat-header').onclick = function() {
-                    document.querySelectorAll('.items').forEach(i => i.classList.remove('active'));
-                    this.nextElementSibling.classList.add('active');
-                    this.parentElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                };
-                container.appendChild(div);
-            });
+    async function init() {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) {
+            renderLogin();
+        } else {
+            renderDashboard();
         }
+    }
 
-        loadMenu();
-    </script>
+    function renderLogin() {
+        document.getElementById('app').innerHTML = `
+            <h2>Area Admin</h2>
+            <input type="password" id="pass" placeholder="Password">
+            <button onclick="login()">ACCEDI</button>
+        `;
+    }
+
+    async function login() {
+        const pass = document.getElementById('pass').value;
+        const { error } = await sb.auth.signInWithPassword({ email: 'adminyard@yard.it', password: pass });
+        if (error) alert(error.message); else location.reload();
+    }
+
+    async function renderDashboard() {
+        document.getElementById('app').innerHTML = `
+            <h2>Dashboard</h2>
+            <p>Sei loggato. Caricamento dati...</p>
+            <button onclick="sb.auth.signOut(); location.reload();" style="background:#ff453a;">LOGOUT</button>
+            <div id="data-view"></div>
+        `;
+        
+        // ESEMPIO: Caricamento dati da una tabella (cambia 'prodotti' con il nome corretto della tua tabella su Supabase)
+        const { data, error } = await sb.from('prodotti').select('*');
+        if (error) {
+            document.getElementById('data-view').innerHTML = "Errore: " + error.message;
+        } else {
+            document.getElementById('data-view').innerHTML = JSON.stringify(data);
+        }
+    }
+
+    init();
+</script>
 </body>
 </html>
