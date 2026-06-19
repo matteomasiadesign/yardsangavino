@@ -3,82 +3,274 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Menu</title>
+    <title>Yard | Menu Exclusive</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #0a0a0a; --text: #f5f5f7; --accent: #d4af37; --border: #2d2d2d; }
-        body { background: var(--bg); color: var(--text); font-family: 'Helvetica Neue', -apple-system, sans-serif; margin: 0; padding: 0; }
-        header { text-align: center; padding: 40px 20px 20px; border-bottom: 1px solid var(--border); }
-        .logo { max-width: 120px; margin-bottom: 15px; } /* Inserisci qui l'URL del tuo logo nel tag img sotto */
-        h1 { font-weight: 300; letter-spacing: 4px; text-transform: uppercase; margin: 0; font-size: 22px; color: var(--accent); }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #050505 0%, #0f120f 100%);
+            --glass-bg: rgba(20, 24, 20, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-border-active: rgba(48, 209, 88, 0.3);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --accent: #30d158;
+            --accent-glow: rgba(48, 209, 88, 0.15);
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .logo-container {
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            max-width: 150px;
+            max-height: 100px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
+        }
+
+        h1 {
+            font-weight: 200;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin: 0;
+            font-size: 26px;
+            color: var(--text-primary);
+            position: relative;
+            display: inline-block;
+        }
         
-        /* Categorie a cascata */
-        details { background: #141414; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
-        summary { padding: 18px; font-size: 18px; font-weight: 500; cursor: pointer; display: flex; justify-content: space-between; align-items: center; list-style: none; outline: none; }
-        summary::-webkit-details-marker { display: none; }
-        summary::after { content: '+'; font-size: 24px; color: var(--accent); transition: 0.3s; }
-        details[open] summary::after { content: '−'; }
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            padding: 20px;
+            box-sizing: border-box;
+            margin-bottom: 50px;
+        }
+
+        /* Glassmorphism Accordion */
+        .category-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            margin-bottom: 18px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .category-card.active {
+            border-color: var(--glass-border-active);
+            box-shadow: 0 8px 32px 0 rgba(48, 209, 88, 0.1);
+        }
+
+        .category-header {
+            padding: 22px;
+            font-size: 18px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            letter-spacing: 1px;
+        }
+
+        .category-card.active .category-header {
+            color: var(--accent);
+        }
+
+        .arrow {
+            font-size: 12px;
+            transition: transform 0.4s ease;
+            color: var(--text-secondary);
+        }
+
+        .category-card.active .arrow {
+            transform: rotate(180deg);
+            color: var(--accent);
+        }
+
+        .category-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .product-list {
+            padding: 0 22px 22px 22px;
+        }
+
+        .product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .product-item:last-child {
+            border-bottom: none;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .product-name {
+            font-weight: 400;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .product-price {
+            font-weight: 500;
+            color: var(--accent);
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(48, 209, 88, 0.2);
+        }
+
+        .loading, .error-msg {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            font-size: 15px;
+        }
         
-        /* Prodotti */
-        .product-list { padding: 0 18px 18px; }
-        .product-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #222; }
-        .product-item:last-child { border-bottom: none; }
-        .product-name { font-weight: 400; font-size: 16px; }
-        .product-price { font-weight: 300; color: var(--accent); font-size: 16px; }
-        .loading { text-align: center; padding: 40px; color: #888; }
+        .error-msg {
+            color: #ff453a;
+            border-color: rgba(255, 69, 58, 0.2);
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="https://via.placeholder.com/120x60/141414/d4af37?text=YARD+LOGO" alt="Yard Logo" class="logo">
+        <div class="logo-container">
+            <img src="logo.webp" alt="Yard Logo" class="logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:26px; font-weight:700; color:#30d158; letter-spacing:4px;\'>YARD</span>'">
+        </div>
         <h1>Menu</h1>
     </header>
 
     <div class="container" id="menu-container">
-        <div class="loading">Caricamento del menu in corso...</div>
+        <div class="loading">Esplorazione della selezione esclusiva...</div>
     </div>
 
     <script>
         const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
         async function loadMenu() {
-            // Assicurati che la tabella su Supabase si chiami 'prodotti' e abbia le colonne 'nome', 'prezzo', 'categoria'
-            const { data, error } = await sb.from('prodotti').select('*');
-            
             const container = document.getElementById('menu-container');
+            const { data, error } = await sb.from('prodotti').select('*').order('nome', { ascending: true });
+            
             if (error) {
-                container.innerHTML = `<div class="loading">Errore: ${error.message}</div>`;
+                container.innerHTML = `<div class="error-msg">Errore di sincronizzazione: ${error.message}</div>`;
                 return;
             }
 
-            // Raggruppa i prodotti per categoria
+            if (!data || data.length === 0) {
+                container.innerHTML = `<div class="loading">Nessun elemento disponibile al momento.</div>`;
+                return;
+            }
+
             const categories = {};
             data.forEach(item => {
-                const cat = item.categoria || 'Altro';
+                const cat = item.categoria || 'Selezioni';
                 if (!categories[cat]) categories[cat] = [];
                 categories[cat].push(item);
             });
 
-            // Genera l'HTML a cascata
             let html = '';
             for (const [catName, products] of Object.entries(categories)) {
                 html += `
-                    <details>
-                        <summary>${catName}</summary>
-                        <div class="product-list">
-                            ${products.map(p => `
-                                <div class="product-item">
-                                    <span class="product-name">${p.nome}</span>
-                                    <span class="product-price">€${parseFloat(p.prezzo).toFixed(2)}</span>
-                                </div>
-                            `).join('')}
+                    <div class="category-card">
+                        <div class="category-header" onclick="toggleCategory(this)">
+                            <span>${catName}</span>
+                            <span class="arrow">▼</span>
                         </div>
-                    </details>
+                        <div class="category-content">
+                            <div class="product-list">
+                                ${products.map(p => `
+                                    <div class="product-item">
+                                        <div class="product-info">
+                                            <span class="product-name">${p.nome}</span>
+                                        </div>
+                                        <span class="product-price">€${parseFloat(p.prezzo).toFixed(2)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
                 `;
             }
-            container.innerHTML = html || '<div class="loading">Nessun prodotto trovato nel menu.</div>';
+            container.innerHTML = html;
+        }
+
+        function toggleCategory(header) {
+            const card = header.parentElement;
+            const content = card.querySelector('.category-content');
+            const isOpen = card.classList.contains('active');
+            
+            // Chiudi tutte le altre sezioni aperte
+            document.querySelectorAll('.category-card').forEach(c => {
+                c.classList.remove('active');
+                c.querySelector('.category-content').style.maxHeight = null;
+            });
+            
+            // Se la sezione cliccata era chiusa, aprila e portala in primo piano
+            if (!isOpen) {
+                card.classList.add('active');
+                content.style.maxHeight = content.scrollHeight + "px";
+                
+                // Scorrimento controllato per centrare l'elemento dopo l'espansione animation
+                setTimeout(() => {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 150);
+            }
         }
 
         loadMenu();
