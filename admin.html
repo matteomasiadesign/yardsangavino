@@ -5,53 +5,43 @@
     <title>Yard | Admin</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #141414; padding: 40px; border-radius: 20px; width: 300px; border: 1px solid #2d2d2d; text-align: center; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #333; background: #1c1c1e; color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: #30d158; font-weight: bold; cursor: pointer; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 40px; }
+        .card { background: #141414; padding: 30px; border-radius: 16px; border: 1px solid #2d2d2d; max-width: 600px; margin: auto; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1c1c1e; color: white; }
+        button { background: #30d158; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="card">
-        <h2>Area Admin</h2>
-        <input type="password" id="password" placeholder="Password">
-        <span id="toggleBtn" style="color:#30d158; cursor:pointer; font-size:12px; display:block; margin-bottom:20px;">Mostra Password</span>
-        <button id="loginBtn">ACCEDI</button>
-    </div>
+    <div id="app" class="card">Caricamento...</div>
 
     <script>
-        // 1. Aspetta che Supabase sia caricato
-        window.addEventListener('load', () => {
-            const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+        const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-            // 2. Bottone Mostra/Nascondi
-            document.getElementById('toggleBtn').onclick = function() {
-                const pw = document.getElementById('password');
-                if (pw.type === 'password') {
-                    pw.type = 'text';
-                    this.textContent = 'Nascondi Password';
-                } else {
-                    pw.type = 'password';
-                    this.textContent = 'Mostra Password';
-                }
-            };
+        async function init() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                document.getElementById('app').innerHTML = `
+                    <h2>Login Admin</h2>
+                    <input type="password" id="pass" placeholder="Password">
+                    <button onclick="login()">ACCEDI</button>
+                `;
+            } else {
+                renderDashboard();
+            }
+        }
 
-            // 3. Bottone Login
-            document.getElementById('loginBtn').onclick = async () => {
-                const pass = document.getElementById('password').value;
-                const { error } = await supabase.auth.signInWithPassword({
-                    email: 'adminyard@yard.it',
-                    password: pass
-                });
-                
-                if (error) {
-                    alert("Errore: " + error.message);
-                } else {
-                    window.location.reload();
-                }
-            };
-        });
+        async function login() {
+            const pass = document.getElementById('pass').value;
+            const { error } = await sb.auth.signInWithPassword({ email: 'adminyard@yard.it', password: pass });
+            if (error) alert(error.message); else location.reload();
+        }
+
+        async function renderDashboard() {
+            document.getElementById('app').innerHTML = `<h2>Dashboard</h2><button onclick="sb.auth.signOut(); location.reload();">LOGOUT</button><div id="dati"></div>`;
+            const { data, error } = await sb.from('prodotti').select('*');
+            document.getElementById('dati').innerHTML = error ? error.message : JSON.stringify(data);
+        }
+        init();
     </script>
 </body>
 </html>
