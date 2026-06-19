@@ -2,17 +2,37 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Yard | Admin</title>
+    <title>Yard | Admin Luxury</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 40px; }
-        .card { background: #141414; padding: 30px; border-radius: 16px; border: 1px solid #2d2d2d; max-width: 600px; margin: auto; }
-        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1c1c1e; color: white; }
-        button { background: #30d158; cursor: pointer; font-weight: bold; }
+        :root { --bg: #0a0a0a; --surface: #141414; --text: #f5f5f7; --accent: #30d158; --border: #2d2d2d; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 40px 20px; margin: 0; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background: var(--surface); padding: 30px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
+        h1 { font-weight: 600; margin-bottom: 30px; font-size: 28px; }
+        h2 { font-size: 20px; margin-top: 0; margin-bottom: 20px; }
+        
+        /* Input & Form */
+        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--border); background: #1c1c1e; color: white; box-sizing: border-box; }
+        .row-inputs { display: flex; gap: 15px; margin-bottom: 20px; }
+        .row-inputs input, .row-inputs select { margin-bottom: 0; }
+        button { padding: 14px 24px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+        button:hover { opacity: 0.9; }
+        
+        /* Tabelle finte per estetica (per ora) */
+        .table-header { display: flex; justify-content: space-between; font-size: 12px; color: #888; letter-spacing: 1px; font-weight: bold; padding-top: 20px; border-top: 1px solid var(--border); margin-top: 20px;}
+        
+        /* Box di Login centrale */
+        .login-wrapper { display: flex; justify-content: center; align-items: center; height: 80vh; }
+        .login-box { max-width: 400px; width: 100%; }
+        .toggle-pw { color: var(--accent); cursor: pointer; font-size: 13px; float: right; margin-top: -45px; margin-right: 15px; position: relative; z-index: 10; }
     </style>
 </head>
 <body>
-    <div id="app" class="card">Caricamento...</div>
+
+    <div id="app" class="container">
+        <h2 style="text-align:center; color:#888;">Inizializzazione sistema...</h2>
+    </div>
 
     <script>
         const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
@@ -20,28 +40,81 @@
         async function init() {
             const { data: { session } } = await sb.auth.getSession();
             if (!session) {
-                document.getElementById('app').innerHTML = `
-                    <h2>Login Admin</h2>
-                    <input type="password" id="pass" placeholder="Password">
-                    <button onclick="login()">ACCEDI</button>
-                `;
+                renderLogin();
             } else {
-                renderDashboard();
+                renderAdmin();
             }
         }
 
-        async function login() {
-            const pass = document.getElementById('pass').value;
-            const { error } = await sb.auth.signInWithPassword({ email: 'adminyard@yard.it', password: pass });
-            if (error) alert(error.message); else location.reload();
+        function renderLogin() {
+            document.getElementById('app').innerHTML = `
+                <div class="login-wrapper">
+                    <div class="card login-box">
+                        <h2 style="text-align:center">Area Admin</h2>
+                        <input type="password" id="pass" placeholder="Password">
+                        <span class="toggle-pw" onclick="togglePw()">Mostra</span>
+                        <button onclick="login()" style="width:100%; margin-top:20px;">ACCEDI</button>
+                    </div>
+                </div>
+            `;
         }
 
-        async function renderDashboard() {
-            document.getElementById('app').innerHTML = `<h2>Dashboard</h2><button onclick="sb.auth.signOut(); location.reload();">LOGOUT</button><div id="dati"></div>`;
-            const { data, error } = await sb.from('prodotti').select('*');
-            document.getElementById('dati').innerHTML = error ? error.message : JSON.stringify(data);
+        function togglePw() {
+            const p = document.getElementById('pass');
+            const span = document.querySelector('.toggle-pw');
+            p.type = p.type === 'password' ? 'text' : 'password';
+            span.textContent = p.type === 'password' ? 'Mostra' : 'Nascondi';
         }
-        init();
+
+        async function login() {
+            const { error } = await sb.auth.signInWithPassword({
+                email: 'adminyard@yard.it',
+                password: document.getElementById('pass').value
+            });
+            if (error) alert("Credenziali errate!"); else location.reload();
+        }
+
+        function renderAdmin() {
+            document.getElementById('app').innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h1>Dashboard YARD</h1>
+                    <button onclick="sb.auth.signOut(); location.reload();" style="background: #1c1c1e; color: #ff453a; border: 1px solid #ff453a;">LOGOUT</button>
+                </div>
+                
+                <div class="card">
+                    <h2>Categorie</h2>
+                    <input type="text" placeholder="Cerca categorie...">
+                    <div class="table-header">
+                        <span>NOME</span>
+                        <span>STATO</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Prodotti</h2>
+                    <div class="row-inputs">
+                        <input type="text" placeholder="🔍 Cerca per nome..." style="flex: 2;">
+                        <select style="flex: 1;">
+                            <option>Tutte le categorie</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row-inputs">
+                        <input type="text" placeholder="Nuovo prodotto" style="flex: 2;">
+                        <input type="text" placeholder="Prezzo" style="flex: 1;">
+                        <button>Aggiungi</button>
+                    </div>
+
+                    <div class="table-header">
+                        <span>PRODOTTO</span>
+                        <span style="text-align:center; flex:1;">PREZZO</span>
+                        <span style="text-align:right;">STATO</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.addEventListener('load', init);
     </script>
 </body>
 </html>
