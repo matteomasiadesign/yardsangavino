@@ -2,36 +2,196 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yard | Admin Luxury</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --bg: #0a0a0a; --surface: #141414; --text: #f5f5f7; --accent: #30d158; --border: #2d2d2d; }
-        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 40px 20px; margin: 0; }
-        .container { max-width: 900px; margin: auto; }
-        .card { background: var(--surface); padding: 30px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 24px; }
-        h1 { font-weight: 600; margin-bottom: 30px; font-size: 28px; }
-        h2 { font-size: 20px; margin-top: 0; margin-bottom: 20px; }
+        :root {
+            --bg-gradient: linear-gradient(135deg, #050505 0%, #111411 100%);
+            --glass-bg: rgba(20, 24, 20, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.06);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --accent: #30d158;
+            --danger: #ff453a;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+        }
+
+        h1, h2 {
+            font-weight: 500;
+            margin-top: 0;
+            letter-spacing: 0.5px;
+        }
         
-        /* Input & Form */
-        input, select { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; border: 1px solid var(--border); background: #1c1c1e; color: white; box-sizing: border-box; }
-        .row-inputs { display: flex; gap: 15px; margin-bottom: 20px; }
-        .row-inputs input, .row-inputs select { margin-bottom: 0; }
-        button { padding: 14px 24px; border-radius: 10px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; white-space: nowrap; }
-        button:hover { opacity: 0.9; }
+        h1 { font-size: 28px; color: #fff; }
+        h2 { font-size: 20px; color: var(--text-secondary); margin-bottom: 25px; }
+
+        /* Form Controls */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(30, 35, 30, 0.4);
+            color: white;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(48, 209, 88, 0.2);
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 16px;
+            top: 15px;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 13px;
+            user-select: none;
+            font-weight: 500;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: #050505;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .row input {
+            margin-bottom: 0;
+        }
+
+        /* Lists Design */
+        .data-list {
+            margin-top: 20px;
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .list-item:hover {
+            background: rgba(255,255,255,0.01);
+        }
+
+        .item-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .item-category {
+            font-size: 12px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-delete {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            width: auto;
+            font-weight: 500;
+        }
+
+        .btn-delete:hover {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* Layout d'Accesso */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 90vh;
+        }
         
-        /* Tabelle finte per estetica (per ora) */
-        .table-header { display: flex; justify-content: space-between; font-size: 12px; color: #888; letter-spacing: 1px; font-weight: bold; padding-top: 20px; border-top: 1px solid var(--border); margin-top: 20px;}
-        
-        /* Box di Login centrale */
-        .login-wrapper { display: flex; justify-content: center; align-items: center; height: 80vh; }
-        .login-box { max-width: 400px; width: 100%; }
-        .toggle-pw { color: var(--accent); cursor: pointer; font-size: 13px; float: right; margin-top: -45px; margin-right: 15px; position: relative; z-index: 10; }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+        }
     </style>
 </head>
 <body>
 
     <div id="app" class="container">
-        <h2 style="text-align:center; color:#888;">Inizializzazione sistema...</h2>
+        <div style="text-align:center; padding: 50px; color: var(--text-secondary);">Sincronizzazione in corso...</div>
     </div>
 
     <script>
@@ -42,76 +202,140 @@
             if (!session) {
                 renderLogin();
             } else {
-                renderAdmin();
+                renderDashboard();
             }
         }
 
         function renderLogin() {
             document.getElementById('app').innerHTML = `
-                <div class="login-wrapper">
-                    <div class="card login-box">
-                        <h2 style="text-align:center">Area Admin</h2>
-                        <input type="password" id="pass" placeholder="Password">
-                        <span class="toggle-pw" onclick="togglePw()">Mostra</span>
-                        <button onclick="login()" style="width:100%; margin-top:20px;">ACCEDI</button>
+                <div class="login-container">
+                    <div class="card login-card">
+                        <h2 style="text-align:center; color:#fff; font-weight:400; letter-spacing:1px;">Area Amministrazione</h2>
+                        <input type="hidden" id="email" value="adminyard@yard.it">
+                        <div class="input-group" style="margin-top:25px;">
+                            <input type="password" id="password" placeholder="Inserisci Password">
+                            <span class="toggle-pw" onclick="togglePassword()">Mostra</span>
+                        </div>
+                        <button onclick="doLogin()" style="margin-top:10px;">ACCEDI</button>
                     </div>
                 </div>
             `;
         }
 
-        function togglePw() {
-            const p = document.getElementById('pass');
+        function togglePassword() {
+            const pw = document.getElementById('password');
             const span = document.querySelector('.toggle-pw');
-            p.type = p.type === 'password' ? 'text' : 'password';
-            span.textContent = p.type === 'password' ? 'Mostra' : 'Nascondi';
+            if (pw.type === "password") {
+                pw.type = "text";
+                span.textContent = "Nascondi";
+            } else {
+                pw.type = "password";
+                span.textContent = "Mostra";
+            }
         }
 
-        async function login() {
-            const { error } = await sb.auth.signInWithPassword({
-                email: 'adminyard@yard.it',
-                password: document.getElementById('pass').value
-            });
-            if (error) alert("Credenziali errate!"); else location.reload();
+        async function doLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const { error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) {
+                alert("Accesso negato: password non valida.");
+            } else {
+                location.reload();
+            }
         }
 
-        function renderAdmin() {
+        async function renderDashboard() {
             document.getElementById('app').innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
                     <h1>Dashboard YARD</h1>
-                    <button onclick="sb.auth.signOut(); location.reload();" style="background: #1c1c1e; color: #ff453a; border: 1px solid #ff453a;">LOGOUT</button>
+                    <button onclick="sb.auth.signOut().then(()=>location.reload())" style="background: rgba(255,255,255,0.06); color: var(--danger); border: 1px solid rgba(255,69,58,0.2); width:auto; padding:10px 20px;">Esci</button>
                 </div>
-                
+
                 <div class="card">
-                    <h2>Categorie</h2>
-                    <input type="text" placeholder="Cerca categorie...">
-                    <div class="table-header">
-                        <span>NOME</span>
-                        <span>STATO</span>
+                    <h2>Aggiungi Elemento al Menu</h2>
+                    <div class="row">
+                        <input type="text" id="newName" placeholder="Nome del piatto o drink" style="flex:2;">
+                        <input type="number" step="0.05" id="newPrice" placeholder="Prezzo (€)" style="flex:1;">
+                    </div>
+                    <div class="row">
+                        <input type="text" id="newCategory" placeholder="Categoria (es. Cocktails, Antipasti, Secondi)" style="flex:2;">
+                        <button onclick="addProduct()" style="flex:1;">Aggiungi</button>
                     </div>
                 </div>
 
                 <div class="card">
-                    <h2>Prodotti</h2>
-                    <div class="row-inputs">
-                        <input type="text" placeholder="🔍 Cerca per nome..." style="flex: 2;">
-                        <select style="flex: 1;">
-                            <option>Tutte le categorie</option>
-                        </select>
-                    </div>
-                    
-                    <div class="row-inputs">
-                        <input type="text" placeholder="Nuovo prodotto" style="flex: 2;">
-                        <input type="text" placeholder="Prezzo" style="flex: 1;">
-                        <button>Aggiungi</button>
-                    </div>
-
-                    <div class="table-header">
-                        <span>PRODOTTO</span>
-                        <span style="text-align:center; flex:1;">PREZZO</span>
-                        <span style="text-align:right;">STATO</span>
+                    <h2>Elementi Attivi nel Menu</h2>
+                    <div class="data-list" id="products-list-container">
+                        Caricamento elementi...
                     </div>
                 </div>
             `;
+            loadDashboardProducts();
+        }
+
+        async function loadDashboardProducts() {
+            const container = document.getElementById('products-list-container');
+            const { data, error } = await sb.from('prodotti').select('*').order('categoria', { ascending: true });
+            
+            if (error) {
+                container.innerHTML = `Errore nell'acquisizione dei dati: ${error.message}`;
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                container.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding:20px;">Nessun elemento presente nel database.</div>`;
+                return;
+            }
+
+            let html = `
+                <div class="list-header">
+                    <span>Elemento</span>
+                    <span>Azione</span>
+                </div>
+            `;
+
+            data.forEach(p => {
+                html += `
+                    <div class="list-item">
+                        <div class="item-details">
+                            <span style="font-weight:500;">${p.nome}</span>
+                            <span class="item-category">${p.categoria} — €${parseFloat(p.prezzo).toFixed(2)}</span>
+                        </div>
+                        <button class="btn-delete" onclick="deleteProduct(${p.id})">Elimina</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        async function addProduct() {
+            const nome = document.getElementById('newName').value.trim();
+            const prezzo = document.getElementById('newPrice').value;
+            const categoria = document.getElementById('newCategory').value.trim();
+
+            if (!nome || !prezzo || !categoria) {
+                alert("Compila tutti i campi prima di procedere.");
+                return;
+            }
+
+            const { error } = await sb.from('prodotti').insert([{ nome, prezzo: parseFloat(prezzo), categoria }]);
+            if (error) {
+                alert("Errore nell'inserimento del prodotto: " + error.message);
+            } else {
+                document.getElementById('newName').value = '';
+                document.getElementById('newPrice').value = '';
+                document.getElementById('newCategory').value = '';
+                loadDashboardProducts();
+            }
+        }
+
+        async function deleteProduct(id) {
+            if (confirm("Confermi di voler eliminare questo elemento in modo permanente?")) {
+                const { error } = await sb.from('prodotti').delete().eq('id', id);
+                if (error) alert("Impossibile eliminare l'elemento: " + error.message);
+                else loadDashboardProducts();
+            }
         }
 
         window.addEventListener('load', init);
