@@ -7,10 +7,10 @@
     <style>
         :root { --bg: #0a0a0a; --surface: #141414; --text-primary: #f5f5f7; --accent: #30d158; --border: #2d2d2d; }
         body { background-color: var(--bg); color: var(--text-primary); font-family: -apple-system, sans-serif; padding: 40px 20px; display: flex; justify-content: center; }
-        .card { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .card { background: var(--surface); padding: 40px; border-radius: 20px; border: 1px solid var(--border); width: 100%; max-width: 400px; }
         .input-group { position: relative; margin-bottom: 20px; }
         input { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); background: #1c1c1e; color: white; box-sizing: border-box; }
-        .toggle-pw { position: absolute; right: 15px; top: 14px; cursor: pointer; color: var(--accent); font-size: 0.8rem; user-select: none; }
+        .toggle-pw { position: absolute; right: 15px; top: 14px; cursor: pointer; color: var(--accent); font-size: 0.8rem; }
         button { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--accent); font-weight: 700; cursor: pointer; }
     </style>
 </head>
@@ -22,54 +22,52 @@
     
     <div class="input-group">
         <input type="password" id="password" placeholder="Password">
-        <span class="toggle-pw" onclick="togglePassword()">Mostra</span>
+        <span id="toggleBtn" class="toggle-pw">Mostra</span>
     </div>
-    <button onclick="doLogin()">ACCEDI</button>
+    <button id="loginBtn">ACCEDI</button>
 </div>
 
 <script>
     const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-    // Funzione globale per mostrare/nascondere password
-    function togglePassword() {
-        const pw = document.getElementById('password');
-        const span = document.querySelector('.toggle-pw');
-        if (pw.type === "password") {
-            pw.type = "text";
-            span.textContent = "Nascondi";
-        } else {
-            pw.type = "password";
-            span.textContent = "Mostra";
-        }
-    }
-
-    // Funzione globale per il login
-    async function doLogin() {
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+    // Inizializzazione eventi dopo il caricamento
+    document.addEventListener('DOMContentLoaded', () => {
         
-        console.log("Tentativo login con:", email);
-        
-        const { error } = await supabase.auth.signInWithPassword({ 
-            email: email, 
-            password: password 
+        // Listener per Mostra/Nascondi Password
+        document.getElementById('toggleBtn').addEventListener('click', function() {
+            const pw = document.getElementById('password');
+            if (pw.type === "password") {
+                pw.type = "text";
+                this.textContent = "Nascondi";
+            } else {
+                pw.type = "password";
+                this.textContent = "Mostra";
+            }
         });
-        
-        if (error) {
-            alert("Errore login: " + error.message);
-        } else {
-            location.reload();
-        }
-    }
 
-    // Controllo sessione all'avvio
+        // Listener per Login
+        document.getElementById('loginBtn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) alert("Errore: " + error.message);
+            else location.reload();
+        });
+    });
+
+    // Controllo sessione
     async function checkAuth() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
             document.getElementById('app').innerHTML = `
                 <h2>Benvenuto, Admin</h2>
-                <button onclick="supabase.auth.signOut().then(()=>location.reload())" style="background: #ff453a;">LOGOUT</button>
+                <button id="logoutBtn" style="background: #ff453a;">LOGOUT</button>
             `;
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                location.reload();
+            });
         }
     }
     
