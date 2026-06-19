@@ -174,5 +174,40 @@
 
     loadData();
 </script>
+    const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+
+// Funzione di Login
+async function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+        alert("Errore: " + error.message);
+    } else {
+        location.reload(); // Ricarica la pagina dopo il login riuscito
+    }
+}
+
+// Controllo sessione all'avvio
+async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+        // Mostra il form di login se non c'è sessione
+        document.body.innerHTML = `
+            <div style="max-width: 400px; margin: 100px auto; padding: 40px; background: #141414; border-radius: 16px; border: 1px solid #2d2d2d; color: white;">
+                <h2 style="text-align:center">Area Admin</h2>
+                <input type="email" id="email" placeholder="Email" style="width:100%; margin-bottom:10px; padding:12px; border-radius:8px; border:1px solid #2d2d2d; background:#1c1c1e; color:white;">
+                <input type="password" id="password" placeholder="Password" style="width:100%; margin-bottom:20px; padding:12px; border-radius:8px; border:1px solid #2d2d2d; background:#1c1c1e; color:white;">
+                <button onclick="login()" style="width:100%; padding:12px; border-radius:8px; border:none; background:#30d158; font-weight:bold; cursor:pointer;">ACCEDI</button>
+            </div>
+        `;
+    } else {
+        // Carica l'admin normale
+        loadData();
+    }
+}
+
+checkAuth();
 </body>
 </html>
