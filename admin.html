@@ -3,53 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <title>Yard | Admin</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body style="background:#0a0a0a; color:white; font-family:sans-serif; text-align:center; padding-top:50px;">
 
-    <div id="app">Verifica connessione in corso...</div>
+    <div id="app">Inizializzazione sistema...</div>
 
     <script>
-        // Nota: utilizzando la versione UMD, supabase è accessibile tramite supabase.createClient
-        const supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+        // Controllo se supabase è stato caricato correttamente
+        if (typeof supabase === 'undefined') {
+            document.getElementById('app').innerHTML = "Errore: Libreria Supabase non caricata.";
+        } else {
+            const _supabase = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-        async function init() {
-            try {
-                console.log("Inizializzazione...");
-                const { data: { session }, error } = await supabase.auth.getSession();
-                
-                if (error) throw error;
+            async function startApp() {
+                try {
+                    console.log("Controllo sessione...");
+                    const { data: { session }, error } = await _supabase.auth.getSession();
+                    
+                    if (error) throw error;
 
-                if (!session) {
-                    document.getElementById('app').innerHTML = `
-                        <h2>Login Admin</h2>
-                        <input type="email" id="email" placeholder="Email"><br><br>
-                        <input type="password" id="password" placeholder="Password"><br><br>
-                        <button onclick="login()">ACCEDI</button>
-                    `;
-                } else {
-                    document.getElementById('app').innerHTML = "<h1>Benvenuto Admin</h1><button onclick='logout()'>Logout</button>";
+                    if (!session) {
+                        document.getElementById('app').innerHTML = `
+                            <h2>Login Admin</h2>
+                            <input type="email" id="email" placeholder="Email" style="padding:10px; border-radius:5px;"><br><br>
+                            <input type="password" id="password" placeholder="Password" style="padding:10px; border-radius:5px;"><br><br>
+                            <button onclick="doLogin()" style="padding:10px 20px; cursor:pointer;">ACCEDI</button>
+                        `;
+                    } else {
+                        document.getElementById('app').innerHTML = "<h1>Benvenuto Admin</h1><button onclick='doLogout()'>Logout</button>";
+                    }
+                } catch (err) {
+                    document.getElementById('app').innerHTML = "Errore caricamento: " + err.message;
+                    console.error(err);
                 }
-            } catch (err) {
-                console.error("Errore:", err);
-                document.getElementById('app').innerHTML = "Errore: " + err.message;
             }
-        }
 
-        async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) alert(error.message);
-            else location.reload();
-        }
+            async function doLogin() {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const { error } = await _supabase.auth.signInWithPassword({ email, password });
+                if (error) alert(error.message);
+                else location.reload();
+            }
 
-        async function logout() {
-            await supabase.auth.signOut();
-            location.reload();
-        }
+            async function doLogout() {
+                await _supabase.auth.signOut();
+                location.reload();
+            }
 
-        init();
+            // Esponi le funzioni al browser
+            window.doLogin = doLogin;
+            window.doLogout = doLogout;
+
+            startApp();
+        }
     </script>
 </body>
 </html>
