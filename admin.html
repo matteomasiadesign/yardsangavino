@@ -2,343 +2,68 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Admin Luxury</title>
+    <title>Yard | Admin Control</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --bg-gradient: linear-gradient(135deg, #050505 0%, #111411 100%);
-            --glass-bg: rgba(20, 24, 20, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.06);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.6);
-            --accent: #30d158;
-            --danger: #ff453a;
-        }
-
-        body {
-            background: var(--bg-gradient);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 850px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 35px;
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
-            margin-bottom: 30px;
-        }
-
-        h1, h2 {
-            font-weight: 500;
-            margin-top: 0;
-            letter-spacing: 0.5px;
-        }
-        
-        h1 { font-size: 28px; color: #fff; }
-        h2 { font-size: 20px; color: var(--text-secondary); margin-bottom: 25px; }
-
-        /* Form Controls */
-        .input-group {
-            position: relative;
-            margin-bottom: 20px;
-            width: 100%;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(30, 35, 30, 0.4);
-            color: white;
-            box-sizing: border-box;
-            font-size: 15px;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 10px rgba(48, 209, 88, 0.2);
-        }
-
-        .toggle-pw {
-            position: absolute;
-            right: 16px;
-            top: 15px;
-            cursor: pointer;
-            color: var(--accent);
-            font-size: 13px;
-            user-select: none;
-            font-weight: 500;
-        }
-
-        button {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            background: var(--accent);
-            color: #050505;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        .row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .row input {
-            margin-bottom: 0;
-        }
-
-        /* Lists Design */
-        .data-list {
-            margin-top: 20px;
-        }
-
-        .list-header {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 16px;
-            font-size: 12px;
-            color: rgba(255,255,255,0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-        }
-
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        .list-item:hover {
-            background: rgba(255,255,255,0.01);
-        }
-
-        .item-details {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .item-category {
-            font-size: 12px;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-delete {
-            background: transparent;
-            color: var(--danger);
-            border: 1px solid rgba(255, 69, 58, 0.3);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            width: auto;
-            font-weight: 500;
-        }
-
-        .btn-delete:hover {
-            background: var(--danger);
-            color: white;
-            border-color: var(--danger);
-        }
-
-        /* Layout d'Accesso */
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 90vh;
-        }
-        
-        .login-card {
-            width: 100%;
-            max-width: 400px;
-        }
+        :root { --bg: #050505; --card: rgba(20, 24, 20, 0.8); --accent: #30d158; }
+        body { background: var(--bg); color: white; font-family: sans-serif; margin: 0; padding: 20px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; cursor: pointer; background: #222; border-radius: 8px; }
+        .tab-btn.active { background: var(--accent); color: black; }
+        .panel { display: none; background: var(--card); padding: 20px; border-radius: 12px; }
+        .panel.active { display: block; }
+        .list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; cursor: grab; }
     </style>
 </head>
 <body>
-
-    <div id="app" class="container">
-        <div style="text-align:center; padding: 50px; color: var(--text-secondary);">Sincronizzazione in corso...</div>
+    <div class="tabs">
+        <div class="tab-btn active" onclick="showPanel('add')">Aggiungi</div>
+        <div class="tab-btn" onclick="showPanel('reorder')">Riordina</div>
+        <div class="tab-btn" onclick="showPanel('manage')">Gestisci</div>
     </div>
 
-    <script>
-        const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+    <div id="add" class="panel active">
+        <input type="text" id="name" placeholder="Nome">
+        <input type="number" id="price" placeholder="Prezzo">
+        <input type="text" id="category" placeholder="Categoria">
+        <button onclick="addProduct()">Salva Piatto</button>
+    </div>
 
-        async function init() {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-                renderLogin();
-            } else {
-                renderDashboard();
-            }
-        }
+    <div id="reorder" class="panel">
+        <div id="drag-list"></div>
+    </div>
 
-        function renderLogin() {
-            document.getElementById('app').innerHTML = `
-                <div class="login-container">
-                    <div class="card login-card">
-                        <h2 style="text-align:center; color:#fff; font-weight:400; letter-spacing:1px;">Area Amministrazione</h2>
-                        <input type="hidden" id="email" value="adminyard@yard.it">
-                        <div class="input-group" style="margin-top:25px;">
-                            <input type="password" id="password" placeholder="Inserisci Password">
-                            <span class="toggle-pw" onclick="togglePassword()">Mostra</span>
-                        </div>
-                        <button onclick="doLogin()" style="margin-top:10px;">ACCEDI</button>
-                    </div>
-                </div>
-            `;
-        }
+    <div id="manage" class="panel">
+        <div id="manage-list"></div>
+    </div>
 
-        function togglePassword() {
-            const pw = document.getElementById('password');
-            const span = document.querySelector('.toggle-pw');
-            if (pw.type === "password") {
-                pw.type = "text";
-                span.textContent = "Nascondi";
-            } else {
-                pw.type = "password";
-                span.textContent = "Mostra";
-            }
-        }
+<script>
+    const sb = supabase.createClient('URL', 'KEY');
 
-        async function doLogin() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const { error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) {
-                alert("Accesso negato: password non valida.");
-            } else {
-                location.reload();
-            }
-        }
+    function showPanel(id) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        event.target.classList.add('active');
+    }
 
-        async function renderDashboard() {
-            document.getElementById('app').innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
-                    <h1>Dashboard YARD</h1>
-                    <button onclick="sb.auth.signOut().then(()=>location.reload())" style="background: rgba(255,255,255,0.06); color: var(--danger); border: 1px solid rgba(255,69,58,0.2); width:auto; padding:10px 20px;">Esci</button>
-                </div>
+    async function addProduct() {
+        const { error } = await sb.from('prodotti').insert({
+            nome: document.getElementById('name').value,
+            prezzo: document.getElementById('price').value,
+            categoria: document.getElementById('category').value
+        });
+        if(!error) alert("Aggiunto!");
+    }
 
-                <div class="card">
-                    <h2>Aggiungi Elemento al Menu</h2>
-                    <div class="row">
-                        <input type="text" id="newName" placeholder="Nome del piatto o drink" style="flex:2;">
-                        <input type="number" step="0.05" id="newPrice" placeholder="Prezzo (€)" style="flex:1;">
-                    </div>
-                    <div class="row">
-                        <input type="text" id="newCategory" placeholder="Categoria (es. Cocktails, Antipasti, Secondi)" style="flex:2;">
-                        <button onclick="addProduct()" style="flex:1;">Aggiungi</button>
-                    </div>
-                </div>
+    // Drag and Drop (Logica semplificata)
+    async function loadDragList() {
+        const { data } = await sb.from('prodotti').select('*').order('posizione');
+        const list = document.getElementById('drag-list');
+        list.innerHTML = data.map(p => `<div class="list-item" draggable="true" ondragstart="drag(event)" id="${p.id}">${p.nome}</div>`).join('');
+    }
 
-                <div class="card">
-                    <h2>Elementi Attivi nel Menu</h2>
-                    <div class="data-list" id="products-list-container">
-                        Caricamento elementi...
-                    </div>
-                </div>
-            `;
-            loadDashboardProducts();
-        }
-
-        async function loadDashboardProducts() {
-            const container = document.getElementById('products-list-container');
-            const { data, error } = await sb.from('prodotti').select('*').order('categoria', { ascending: true });
-            
-            if (error) {
-                container.innerHTML = `Errore nell'acquisizione dei dati: ${error.message}`;
-                return;
-            }
-
-            if (!data || data.length === 0) {
-                container.innerHTML = `<div style="color:var(--text-secondary); text-align:center; padding:20px;">Nessun elemento presente nel database.</div>`;
-                return;
-            }
-
-            let html = `
-                <div class="list-header">
-                    <span>Elemento</span>
-                    <span>Azione</span>
-                </div>
-            `;
-
-            data.forEach(p => {
-                html += `
-                    <div class="list-item">
-                        <div class="item-details">
-                            <span style="font-weight:500;">${p.nome}</span>
-                            <span class="item-category">${p.categoria} — €${parseFloat(p.prezzo).toFixed(2)}</span>
-                        </div>
-                        <button class="btn-delete" onclick="deleteProduct(${p.id})">Elimina</button>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        async function addProduct() {
-            const nome = document.getElementById('newName').value.trim();
-            const prezzo = document.getElementById('newPrice').value;
-            const categoria = document.getElementById('newCategory').value.trim();
-
-            if (!nome || !prezzo || !categoria) {
-                alert("Compila tutti i campi prima di procedere.");
-                return;
-            }
-
-            const { error } = await sb.from('prodotti').insert([{ nome, prezzo: parseFloat(prezzo), categoria }]);
-            if (error) {
-                alert("Errore nell'inserimento del prodotto: " + error.message);
-            } else {
-                document.getElementById('newName').value = '';
-                document.getElementById('newPrice').value = '';
-                document.getElementById('newCategory').value = '';
-                loadDashboardProducts();
-            }
-        }
-
-        async function deleteProduct(id) {
-            if (confirm("Confermi di voler eliminare questo elemento in modo permanente?")) {
-                const { error } = await sb.from('prodotti').delete().eq('id', id);
-                if (error) alert("Impossibile eliminare l'elemento: " + error.message);
-                else loadDashboardProducts();
-            }
-        }
-
-        window.addEventListener('load', init);
-    </script>
+    // Integra qui le logiche di Update e Delete usando sb.from('prodotti').update().eq('id', id)
+</script>
 </body>
 </html>
