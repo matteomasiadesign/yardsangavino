@@ -2,65 +2,31 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Yard | Admin Dashboard</title>
+    <title>Yard | Menu</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 20px; }
-        .card { background: #141414; padding: 30px; border-radius: 16px; border: 1px solid #2d2d2d; max-width: 600px; margin: auto; }
-        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #333; background: #1c1c1e; color: white; }
-        button { background: #30d158; border: none; cursor: pointer; font-weight: bold; }
+        body { background: #0a0a0a; color: white; font-family: sans-serif; padding: 20px; }
+        .menu-item { border-bottom: 1px solid #333; padding: 10px 0; }
     </style>
 </head>
 <body>
+    <h1>Menu</h1>
+    <div id="menu-container">Caricamento menu...</div>
 
-<div id="app" class="card">
-    <h2>Caricamento...</h2>
-</div>
+    <script>
+        const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
 
-<script>
-    const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
-
-    async function init() {
-        const { data: { session } } = await sb.auth.getSession();
-        if (!session) {
-            renderLogin();
-        } else {
-            renderDashboard();
+        async function loadMenu() {
+            const { data, error } = await sb.from('prodotti').select('*');
+            if (error) {
+                document.getElementById('menu-container').innerHTML = "Errore caricamento menu.";
+            } else {
+                document.getElementById('menu-container').innerHTML = data.map(item => 
+                    `<div class="menu-item">${item.nome} - €${item.prezzo}</div>`
+                ).join('');
+            }
         }
-    }
-
-    function renderLogin() {
-        document.getElementById('app').innerHTML = `
-            <h2>Area Admin</h2>
-            <input type="password" id="pass" placeholder="Password">
-            <button onclick="login()">ACCEDI</button>
-        `;
-    }
-
-    async function login() {
-        const pass = document.getElementById('pass').value;
-        const { error } = await sb.auth.signInWithPassword({ email: 'adminyard@yard.it', password: pass });
-        if (error) alert(error.message); else location.reload();
-    }
-
-    async function renderDashboard() {
-        document.getElementById('app').innerHTML = `
-            <h2>Dashboard</h2>
-            <p>Sei loggato. Caricamento dati...</p>
-            <button onclick="sb.auth.signOut(); location.reload();" style="background:#ff453a;">LOGOUT</button>
-            <div id="data-view"></div>
-        `;
-        
-        // ESEMPIO: Caricamento dati da una tabella (cambia 'prodotti' con il nome corretto della tua tabella su Supabase)
-        const { data, error } = await sb.from('prodotti').select('*');
-        if (error) {
-            document.getElementById('data-view').innerHTML = "Errore: " + error.message;
-        } else {
-            document.getElementById('data-view').innerHTML = JSON.stringify(data);
-        }
-    }
-
-    init();
-</script>
+        loadMenu();
+    </script>
 </body>
 </html>
