@@ -3,276 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Menu Exclusive</title>
+    <title>Yard | Menù</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #050505 0%, #0f120f 100%);
-            --glass-bg: rgba(20, 24, 20, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.06);
-            --glass-border-active: rgba(48, 209, 88, 0.3);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.6);
-            --accent: #30d158;
-            --accent-glow: rgba(48, 209, 88, 0.15);
+            --bg-color: #0f0f0f;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent: #39FF14;
+            --text: #ffffff;
+            --glow: 0 0 15px rgba(57, 255, 20, 0.3);
         }
 
         body {
-            background: var(--bg-gradient);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background-color: var(--bg-color);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
 
-        header {
-            text-align: center;
-            padding: 50px 20px 30px;
-            width: 100%;
-            box-sizing: border-box;
-        }
+        header { margin: 40px 0; text-align: center; }
+        h1 { font-family: 'Courier New', Courier, monospace; font-weight: 900; font-size: 2.5rem; letter-spacing: 4px; color: var(--text); margin: 10px 0; text-shadow: var(--glow); }
 
-        .logo-container {
-            margin-bottom: 20px;
-            min-height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .logo {
-            max-width: 150px;
-            max-height: 100px;
-            object-fit: contain;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
-        }
-
-        h1 {
-            font-weight: 200;
-            letter-spacing: 6px;
-            text-transform: uppercase;
-            margin: 0;
-            font-size: 26px;
-            color: var(--text-primary);
-            position: relative;
-            display: inline-block;
-        }
+        .menu-wrapper { width: 100%; max-width: 500px; }
+        .category { background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid var(--border-color); border-radius: 20px; margin-bottom: 15px; }
+        .cat-header { padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--accent); }
+        .items { padding: 0 20px 20px 20px; display: none; }
+        .items.active { display: block; }
+        .row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .row:last-child { border-bottom: none; }
         
-        h1::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 2px;
-            background: var(--accent);
-            box-shadow: 0 0 8px var(--accent);
-        }
+        /* Loader styling */
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--accent); border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error-msg { color: #ff453a; text-align: center; padding: 20px; background: rgba(255,69,58,0.1); border-radius: 10px; border: 1px solid rgba(255,69,58,0.3); }
 
-        .container {
-            width: 100%;
-            max-width: 550px;
-            padding: 20px;
-            box-sizing: border-box;
-            margin-bottom: 50px;
-        }
-
-        /* Glassmorphism Accordion */
-        .category-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            margin-bottom: 18px;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-        }
-
-        .category-card.active {
-            border-color: var(--glass-border-active);
-            box-shadow: 0 8px 32px 0 rgba(48, 209, 88, 0.1);
-        }
-
-        .category-header {
-            padding: 22px;
-            font-size: 18px;
-            font-weight: 500;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            letter-spacing: 1px;
-        }
-
-        .category-card.active .category-header {
-            color: var(--accent);
-        }
-
-        .arrow {
-            font-size: 12px;
-            transition: transform 0.4s ease;
-            color: var(--text-secondary);
-        }
-
-        .category-card.active .arrow {
-            transform: rotate(180deg);
-            color: var(--accent);
-        }
-
-        .category-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .product-list {
-            padding: 0 22px 22px 22px;
-        }
-
-        .product-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 16px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .product-item:last-child {
-            border-bottom: none;
-        }
-
-        .product-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            flex: 1;
-            padding-right: 20px;
-        }
-
-        .product-name {
-            font-weight: 400;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-        }
-
-        .product-price {
-            font-weight: 500;
-            color: var(--accent);
-            font-size: 16px;
-            text-shadow: 0 0 10px rgba(48, 209, 88, 0.2);
-        }
-
-        .loading, .error-msg {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            font-size: 15px;
-        }
-        
-        .error-msg {
-            color: #ff453a;
-            border-color: rgba(255, 69, 58, 0.2);
-        }
+        footer { margin-top: 50px; text-align: center; font-size: 0.8rem; color: #86868b; }
+        .insta-link { color: var(--accent); text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo-container">
-            <img src="logo.webp" alt="Yard Logo" class="logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:26px; font-weight:700; color:#30d158; letter-spacing:4px;\'>YARD</span>'">
-        </div>
-        <h1>Menu</h1>
+        <h1>MENÙ</h1>
     </header>
 
-    <div class="container" id="menu-container">
-        <div class="loading">Esplorazione della selezione esclusiva...</div>
+    <div class="menu-wrapper" id="menu-container">
+        <div class="loader"></div>
+        <p style="text-align:center; color: var(--text); opacity: 0.7; font-size: 14px;">Caricamento menù...</p>
     </div>
 
+    <footer>
+        <p>YARD | Chiosco del parco</p>
+        <p>Parco di San Gavino, Porto Torres (SS)</p>
+        <a href="https://www.instagram.com/yardsangavino/" class="insta-link" target="_blank">Instagram 📷</a>
+        <p style="margin-top:15px">Designed by Matteo Masia</p>
+    </footer>
+
     <script>
-        const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
+        const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function loadMenu() {
             const container = document.getElementById('menu-container');
-            const { data, error } = await sb.from('prodotti').select('*').order('nome', { ascending: true });
             
-            if (error) {
-                container.innerHTML = `<div class="error-msg">Errore di sincronizzazione: ${error.message}</div>`;
-                return;
-            }
+            try {
+                // Recupera categorie visibili
+                const { data: cats, error: catErr } = await supabase
+                    .from('categories')
+                    .select('*')
+                    .eq('is_visible', true)
+                    .order('order_index');
 
-            if (!data || data.length === 0) {
-                container.innerHTML = `<div class="loading">Nessun elemento disponibile al momento.</div>`;
-                return;
-            }
+                if (catErr) throw new Error("Errore nel caricamento delle categorie.");
 
-            const categories = {};
-            data.forEach(item => {
-                const cat = item.categoria || 'Selezioni';
-                if (!categories[cat]) categories[cat] = [];
-                categories[cat].push(item);
-            });
+                // Recupera prodotti visibili
+                const { data: prods, error: prodErr } = await supabase
+                    .from('products')
+                    .select('*')
+                    .eq('is_visible', true)
+                    .order('order_index');
 
-            let html = '';
-            for (const [catName, products] of Object.entries(categories)) {
-                html += `
-                    <div class="category-card">
-                        <div class="category-header" onclick="toggleCategory(this)">
-                            <span>${catName}</span>
-                            <span class="arrow">▼</span>
+                if (prodErr) throw new Error("Errore nel caricamento dei prodotti.");
+
+                container.innerHTML = ''; // Rimuove il loader
+
+                if (!cats || cats.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; opacity:0.7;">Nessuna voce presente nel menù al momento.</p>';
+                    return;
+                }
+
+                cats.forEach(cat => {
+                    // Filtra i prodotti per questa categoria
+                    const catProducts = prods.filter(p => p.category_id === cat.id);
+                    
+                    // Se la categoria non ha prodotti visibili, saltiamo
+                    if (catProducts.length === 0) return;
+
+                    const div = document.createElement('div');
+                    div.className = 'category';
+                    div.innerHTML = `
+                        <div class="cat-header">${cat.name.toUpperCase()} <span>▼</span></div>
+                        <div class="items">
+                            ${catProducts.map(p => `
+                                <div class="row">
+                                    <span>${p.name}</span>
+                                    <span>€${parseFloat(p.price).toFixed(2)}</span>
+                                </div>
+                            `).join('')}
                         </div>
-                        <div class="category-content">
-                            <div class="product-list">
-                                ${products.map(p => `
-                                    <div class="product-item">
-                                        <div class="product-info">
-                                            <span class="product-name">${p.nome}</span>
-                                        </div>
-                                        <span class="product-price">€${parseFloat(p.prezzo).toFixed(2)}</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </div>
-                `;
+                    `;
+                    
+                    // Logica per l'apertura a tendina (accordion)
+                    div.querySelector('.cat-header').onclick = function() {
+                        const itemsContainer = this.nextElementSibling;
+                        const isAlreadyActive = itemsContainer.classList.contains('active');
+                        
+                        // Chiudi tutti prima di aprire
+                        document.querySelectorAll('.items').forEach(i => i.classList.remove('active'));
+                        document.querySelectorAll('.cat-header span').forEach(span => span.textContent = '▼');
+
+                        if (!isAlreadyActive) {
+                            itemsContainer.classList.add('active');
+                            this.querySelector('span').textContent = '▲';
+                            
+                            // Scroll morbido per centrare la categoria aperta
+                            setTimeout(() => {
+                                this.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }, 100);
+                        }
+                    };
+                    container.appendChild(div);
+                });
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="error-msg">Ops! Si è verificato un errore nel caricamento del menù. Riprova più tardi.</div>`;
             }
-            container.innerHTML = html;
         }
 
-        function toggleCategory(header) {
-            const card = header.parentElement;
-            const content = card.querySelector('.category-content');
-            const isOpen = card.classList.contains('active');
-            
-            // Chiudi tutte le altre sezioni aperte
-            document.querySelectorAll('.category-card').forEach(c => {
-                c.classList.remove('active');
-                c.querySelector('.category-content').style.maxHeight = null;
-            });
-            
-            // Se la sezione cliccata era chiusa, aprila e portala in primo piano
-            if (!isOpen) {
-                card.classList.add('active');
-                content.style.maxHeight = content.scrollHeight + "px";
-                
-                // Scorrimento controllato per centrare l'elemento dopo l'espansione animation
-                setTimeout(() => {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 150);
-            }
-        }
-
+        // Avvia il caricamento appena la pagina è pronta
         loadMenu();
     </script>
 </body>
