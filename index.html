@@ -47,7 +47,7 @@
             border: 1px solid var(--border-color); 
             border-radius: 20px; 
             margin-bottom: 15px; 
-            overflow: hidden; /* Importante per l'animazione */
+            overflow: hidden;
         }
         
         .cat-header { 
@@ -61,9 +61,7 @@
             transition: background 0.3s;
         }
         
-        .cat-header:hover {
-            background: rgba(57, 255, 20, 0.05);
-        }
+        .cat-header:hover { background: rgba(57, 255, 20, 0.05); }
 
         .items { 
             padding: 0 20px 20px 20px; 
@@ -80,12 +78,8 @@
         }
         .row:last-child { border-bottom: none; }
         
-        .price {
-            font-weight: 500;
-            color: #ddd;
-        }
+        .price { font-weight: 500; color: #ddd; }
 
-        /* Loader styling */
         .loader { 
             border: 3px solid rgba(255,255,255,0.1); 
             border-top: 3px solid var(--accent); 
@@ -129,7 +123,7 @@
         <!-- Loader iniziale -->
         <div id="loader-wrapper">
             <div class="loader"></div>
-            <p style="text-align:center; color: var(--text); opacity: 0.7; font-size: 14px;">Caricamento menù...</p>
+            <p style="text-align:center; color: var(--text); opacity: 0.7; font-size: 14px;" id="loader-text">Caricamento menù...</p>
         </div>
     </div>
 
@@ -141,7 +135,6 @@
     </footer>
 
     <script>
-        // Configurazione Supabase (Usa le tue chiavi esatte)
         const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
         const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -149,10 +142,12 @@
         async function loadMenu() {
             const container = document.getElementById('menu-container');
             const loader = document.getElementById('loader-wrapper');
+            const loaderText = document.getElementById('loader-text');
             
             try {
-                console.log("Inizio fetch categorie...");
-                // Recupera categorie visibili
+                console.log("Inizio fetching dati da Supabase...");
+                loaderText.textContent = "Caricamento categorie...";
+
                 const { data: cats, error: catErr } = await supabase
                     .from('categories')
                     .select('*')
@@ -160,13 +155,13 @@
                     .order('order_index');
 
                 if (catErr) {
-                    console.error("Errore Dettagliato Categorie:", catErr);
-                    throw new Error(`Errore DB Categorie: ${catErr.message}`);
+                    console.error("Errore Categorie:", catErr);
+                    throw new Error("Errore caricamento categorie: " + catErr.message);
                 }
-                console.log("Categorie trovate:", cats);
 
-                console.log("Inizio fetch prodotti...");
-                // Recupera prodotti visibili
+                loaderText.textContent = "Caricamento prodotti...";
+                console.log("Categorie recuperate:", cats);
+
                 const { data: prods, error: prodErr } = await supabase
                     .from('products')
                     .select('*')
@@ -174,24 +169,23 @@
                     .order('order_index');
 
                 if (prodErr) {
-                    console.error("Errore Dettagliato Prodotti:", prodErr);
-                    throw new Error(`Errore DB Prodotti: ${prodErr.message}`);
+                    console.error("Errore Prodotti:", prodErr);
+                    throw new Error("Errore caricamento prodotti: " + prodErr.message);
                 }
-                console.log("Prodotti trovati:", prods);
 
-                // Rimuove il loader solo se arriviamo a questo punto senza errori
+                console.log("Prodotti recuperati:", prods);
+
+                // Nascondiamo il loader
                 loader.style.display = 'none';
 
                 if (!cats || cats.length === 0) {
-                    container.innerHTML = '<p style="text-align:center; opacity:0.7; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 12px;">Nessuna categoria visibile al momento.</p>';
+                    container.innerHTML = '<p style="text-align:center; opacity:0.7; padding: 20px;">Nessuna categoria visibile al momento.</p>';
                     return;
                 }
 
-                // Generazione HTML per le categorie
                 let menuHTML = '';
 
                 cats.forEach(cat => {
-                    // Filtra i prodotti per questa categoria
                     const catProducts = prods ? prods.filter(p => p.category_id === cat.id) : [];
                     
                     // Mostriamo la categoria solo se ha almeno un prodotto visibile
@@ -223,27 +217,20 @@
                 }
 
             } catch (error) {
-                console.error("Errore Catch:", error);
+                console.error("Errore fatale in loadMenu:", error);
                 loader.style.display = 'none';
                 container.innerHTML = `
                     <div class="error-msg">
-                        <strong>Ops! Errore caricamento.</strong><br>
-                        <small style="opacity:0.8">${error.message || 'Controlla la connessione o le policy del database.'}</small>
+                        <strong>Ops! Errore di connessione al database.</strong><br>
+                        <small style="opacity:0.8; display:block; margin-top:10px;">${error.message}</small>
                     </div>`;
             }
         }
 
-        // Funzione globale per l'accordion
         window.toggleCategory = function(element) {
             const itemsContainer = element.nextElementSibling;
             const arrow = element.querySelector('.arrow');
             const isAlreadyActive = itemsContainer.classList.contains('active');
-            
-            // Chiudi tutti prima di aprire (opzionale, se vuoi l'effetto fisarmonica pura)
-            /*
-            document.querySelectorAll('.items').forEach(i => i.classList.remove('active'));
-            document.querySelectorAll('.cat-header .arrow').forEach(span => span.textContent = '▼');
-            */
 
             if (isAlreadyActive) {
                 itemsContainer.classList.remove('active');
@@ -259,7 +246,7 @@
             }
         };
 
-        // Avvia il caricamento
+        // Avvia la funzione al caricamento
         loadMenu();
     </script>
 </body>
