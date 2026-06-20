@@ -6,6 +6,7 @@
     <title>Yard | Menù</title>
     <!-- Import Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         :root {
             --bg-color: #0f0f0f;
@@ -29,6 +30,20 @@
         }
 
         header { margin: 40px 0; text-align: center; }
+        
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 60px;
+        }
+
+        .logo-img {
+            max-width: 180px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
         h1 { 
             font-family: 'Courier New', Courier, monospace; 
             font-weight: 900; 
@@ -48,6 +63,7 @@
             border-radius: 20px; 
             margin-bottom: 15px; 
             overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
         }
         
         .cat-header { 
@@ -61,20 +77,27 @@
             transition: background 0.3s;
         }
         
-        .cat-header:hover { background: rgba(57, 255, 20, 0.05); }
+        .cat-header:hover { background: rgba(57, 255, 20, 0.03); }
 
         .items { 
-            padding: 0 20px 20px 20px; 
-            display: none; 
+            padding: 0 20px; 
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease, padding 0.4s ease;
         }
-        .items.active { display: block; }
+        
+        .items.active { 
+            padding: 0 20px 20px 20px;
+            opacity: 1;
+        }
         
         .row { 
             display: flex; 
             justify-content: space-between; 
-            padding: 10px 0; 
+            padding: 12px 0; 
             font-size: 0.95rem; 
-            border-bottom: 1px dashed rgba(255,255,255,0.1); 
+            border-bottom: 1px dashed rgba(255,255,255,0.08); 
         }
         .row:last-child { border-bottom: none; }
         
@@ -95,9 +118,9 @@
             color: #ff453a; 
             text-align: center; 
             padding: 20px; 
-            background: rgba(255,69,58,0.1); 
-            border-radius: 12px; 
-            border: 1px solid rgba(255,69,58,0.3); 
+            background: rgba(255,69,58,0.08); 
+            border-radius: 16px; 
+            border: 1px solid rgba(255,69,58,0.2); 
             margin-top: 20px;
         }
 
@@ -116,7 +139,9 @@
 <body>
 
     <header>
-        <h1>MENÙ</h1>
+        <div class="logo-container">
+            <img src="logo.webp" class="logo-img" alt="YARD Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<h1>MENÙ</h1>';">
+        </div>
     </header>
 
     <div class="menu-wrapper" id="menu-container">
@@ -137,7 +162,10 @@
     <script>
         const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // CORREZIONE FONDAMENTALE: Usiamo 'sb' invece di 'supabase' per evitare conflitti di nome
+        // con l'oggetto globale supabase iniettato dallo script CDN.
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function loadMenu() {
             const container = document.getElementById('menu-container');
@@ -148,7 +176,8 @@
                 console.log("Inizio fetching dati da Supabase...");
                 loaderText.textContent = "Caricamento categorie...";
 
-                const { data: cats, error: catErr } = await supabase
+                // Leggiamo solo categorie visibili ordinate
+                const { data: cats, error: catErr } = await sb
                     .from('categories')
                     .select('*')
                     .eq('is_visible', true)
@@ -156,13 +185,14 @@
 
                 if (catErr) {
                     console.error("Errore Categorie:", catErr);
-                    throw new Error("Errore caricamento categorie: " + catErr.message);
+                    throw new Error("Errore Categorie: " + catErr.message);
                 }
 
-                loaderText.textContent = "Caricamento prodotti...";
                 console.log("Categorie recuperate:", cats);
+                loaderText.textContent = "Caricamento prodotti...";
 
-                const { data: prods, error: prodErr } = await supabase
+                // Leggiamo solo prodotti visibili ordinati per order_index
+                const { data: prods, error: prodErr } = await sb
                     .from('products')
                     .select('*')
                     .eq('is_visible', true)
@@ -170,7 +200,7 @@
 
                 if (prodErr) {
                     console.error("Errore Prodotti:", prodErr);
-                    throw new Error("Errore caricamento prodotti: " + prodErr.message);
+                    throw new Error("Errore Prodotti: " + prodErr.message);
                 }
 
                 console.log("Prodotti recuperati:", prods);
@@ -218,35 +248,60 @@
 
             } catch (error) {
                 console.error("Errore fatale in loadMenu:", error);
-                loader.style.display = 'none';
+                if (loader) loader.style.display = 'none';
+                // Mostra un errore rosso in pagina invece di restare bloccato sul loader
                 container.innerHTML = `
                     <div class="error-msg">
-                        <strong>Ops! Errore di connessione al database.</strong><br>
+                        <strong>Ops! Impossibile caricare il menù.</strong><br>
                         <small style="opacity:0.8; display:block; margin-top:10px;">${error.message}</small>
                     </div>`;
             }
         }
 
         window.toggleCategory = function(element) {
+            const categoryDiv = element.parentElement;
             const itemsContainer = element.nextElementSibling;
             const arrow = element.querySelector('.arrow');
-            const isAlreadyActive = itemsContainer.classList.contains('active');
+            const isActive = itemsContainer.classList.contains('active');
 
-            if (isAlreadyActive) {
+            // Chiude tutte le altre categorie aperte
+            document.querySelectorAll('.items').forEach(item => {
+                if (item !== itemsContainer) {
+                    item.classList.remove('active');
+                    item.style.maxHeight = null;
+                    const otherArrow = item.previousElementSibling.querySelector('.arrow');
+                    if (otherArrow) otherArrow.textContent = '▼';
+                }
+            });
+
+            // Attiva o disattiva la tendina cliccata
+            if (isActive) {
                 itemsContainer.classList.remove('active');
+                itemsContainer.style.maxHeight = null;
                 arrow.textContent = '▼';
             } else {
                 itemsContainer.classList.add('active');
+                // Sfrutta scrollHeight per calcolare dinamicamente l'altezza esatta
+                itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 40 + "px";
                 arrow.textContent = '▲';
                 
-                // Scroll morbido opzionale
+                // Spostamento fluido per non nascondere l'intestazione
                 setTimeout(() => {
-                    element.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                }, 100);
+                    const offset = 40; 
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = categoryDiv.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }, 200);
             }
         };
 
-        // Avvia la funzione al caricamento
+        // Avvia il caricamento appena lo script viene letto
         loadMenu();
     </script>
 </body>
