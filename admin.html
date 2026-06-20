@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yard | Admin Luxury Control</title>
     
-    <!-- Librerie: Supabase e SortableJS per il Drag & Drop -->
+    <!-- Librerie: Supabase e SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
@@ -13,7 +13,7 @@
         :root {
             --bg-gradient: linear-gradient(135deg, #050505 0%, #111411 100%);
             --glass-bg: rgba(20, 24, 20, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.06);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text-primary: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.5);
             --accent: #30d158;
@@ -22,16 +22,8 @@
             --info: #0a84ff;
         }
 
-        body {
-            background: var(--bg-gradient);
-            color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-        }
-
-        .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+        body { background: var(--bg-gradient); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
 
         /* Login UI */
         #login-screen { display: flex; justify-content: center; align-items: center; min-height: 80vh; }
@@ -39,37 +31,36 @@
         .input-group { position: relative; margin-bottom: 20px; }
         .toggle-pw { position: absolute; right: 15px; top: 14px; color: var(--accent); cursor: pointer; font-size: 13px; font-weight: bold; }
 
-        /* Admin Dashboard UI */
+        /* Admin UI */
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
         h1 { font-size: 24px; font-weight: 500; margin: 0; }
         
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 14px; border: 1px solid var(--glass-border); }
-        .tab-btn { flex: 1; text-align: center; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 14px; color: var(--text-secondary); transition: 0.3s; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 6px; border-radius: 14px; border: 1px solid var(--glass-border); overflow-x: auto; }
+        .tab-btn { flex: 1; text-align: center; padding: 12px 10px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text-secondary); transition: 0.3s; white-space: nowrap; }
         .tab-btn.active { background: var(--glass-bg); color: var(--accent); border: 1px solid var(--glass-border); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
         .panel { display: none; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .panel.active { display: block; }
-        .panel h2 { margin-top: 0; font-size: 18px; color: var(--text-secondary); margin-bottom: 20px; }
+        .panel h2 { margin-top: 0; font-size: 18px; color: var(--text-secondary); margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;}
+        .panel h3 { font-size: 16px; color: var(--accent); margin-top: 30px; }
 
         /* Form & Inputs */
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(30, 35, 30, 0.4); color: white; box-sizing: border-box; font-size: 15px; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0, 0, 0, 0.4); color: white; box-sizing: border-box; font-size: 15px; margin-bottom: 15px; }
         input:focus, select:focus { outline: none; border-color: var(--accent); }
-        
-        /* Fix for select options color in some browsers */
         select option { background-color: #111411; color: white; }
         
         button { padding: 14px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; font-size: 15px; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
         button.danger { background: rgba(255,69,58,0.1); color: var(--danger); border: 1px solid rgba(255,69,58,0.3); }
         button.danger:hover { background: var(--danger); color: white; }
+        button.outline { background: transparent; color: var(--text-primary); border: 1px solid var(--glass-border); }
+        button.outline:hover { background: rgba(255,255,255,0.05); }
 
-        .row { display: flex; gap: 15px; }
+        .row { display: flex; gap: 15px; align-items: flex-start; }
         .row > * { flex: 1; }
-        
-        /* Filters specific */
         .filters-row { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 20px; align-items: center; }
 
-        /* List Items (Manage & Reorder) */
+        /* List Items */
         .list-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
         .list-item { background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
         .list-item:hover { background: rgba(255,255,255,0.06); }
@@ -77,107 +68,153 @@
         .item-info { display: flex; flex-direction: column; gap: 4px; }
         .item-name { font-weight: 500; font-size: 16px; }
         .item-cat { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
-        .item-hidden .item-name { color: var(--text-secondary); text-decoration: line-through; }
+        .item-hidden .item-name, .item-hidden .item-cat { color: var(--text-secondary); text-decoration: line-through; }
 
-        /* Category Headers for Reorder */
-        .category-header { margin: 25px 0 10px 0; font-size: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
-
-        /* Drag handle */
+        /* Drag & Drop */
         .drag-handle { cursor: grab; font-size: 20px; color: var(--text-secondary); padding-right: 15px; }
         .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background: rgba(48, 209, 88, 0.1); border-color: var(--accent); }
+        .category-reorder-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 20px; }
 
-        /* Action Buttons */
-        .actions { display: flex; gap: 8px; }
+        /* Actions */
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;}
         .btn-sm { padding: 8px 12px; font-size: 12px; width: auto; border-radius: 8px; font-weight: 600; }
         .btn-edit { background: rgba(10,132,255,0.1); color: var(--info); border: 1px solid rgba(10,132,255,0.3); }
         .btn-hide { background: rgba(255,159,10,0.1); color: var(--warning); border: 1px solid rgba(255,159,10,0.3); }
         .btn-delete { background: rgba(255,69,58,0.1); color: var(--danger); border: 1px solid rgba(255,69,58,0.3); }
+
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;}
+        .modal-content { background: #111411; border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); }
+        .modal-content h3 { margin-top: 0; margin-bottom: 20px; color: var(--text-primary); }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- SCHERMATA DI LOGIN -->
+        <!-- LOGIN -->
         <div id="login-screen">
             <div class="login-card">
                 <h2 style="text-align:center; margin-bottom:25px; font-weight:400;">Area Admin</h2>
                 <input type="hidden" id="email" value="adminyard@yard.it">
                 <div class="input-group">
                     <input type="password" id="password" placeholder="Password di sistema">
-                    <span class="toggle-pw" onclick="togglePw()">Mostra</span>
+                    <span class="toggle-pw" onclick="togglePw('password', this)">Mostra</span>
                 </div>
                 <button onclick="login()">ACCEDI ALLA DASHBOARD</button>
             </div>
         </div>
 
-        <!-- SCHERMATA DASHBOARD -->
+        <!-- DASHBOARD -->
         <div id="admin-screen" style="display:none;">
             <div class="header-bar">
                 <h1>Dashboard YARD</h1>
                 <button class="btn-sm danger" onclick="logout()" style="width: auto;">ESCI</button>
             </div>
 
-            <!-- TABS DI NAVIGAZIONE -->
+            <!-- TABS -->
             <div class="tabs">
                 <div class="tab-btn active" onclick="switchTab('add')">Aggiungi</div>
-                <div class="tab-btn" onclick="switchTab('reorder')">Riordina</div>
-                <div class="tab-btn" onclick="switchTab('manage')">Gestisci</div>
+                <div class="tab-btn" onclick="switchTab('products')">Gestisci Prodotti</div>
+                <div class="tab-btn" onclick="switchTab('categories')">Gestisci Categorie</div>
+                <div class="tab-btn" onclick="switchTab('reorder')">Riordina Menù</div>
             </div>
 
             <!-- 1. PANNELLO AGGIUNGI -->
             <div id="panel-add" class="panel active">
-                <h2>Aggiungi un nuovo elemento al menu</h2>
+                <h2>Aggiungi Nuovo Prodotto</h2>
                 <div class="row">
-                    <input type="text" id="newName" placeholder="Nome (es. Mojito)" style="flex:2;">
-                    <input type="number" id="newPrice" placeholder="Prezzo (€)" step="0.50" style="flex:1;">
+                    <input type="text" id="newProdName" placeholder="Nome (es. Mojito)" style="flex:2;">
+                    <input type="number" id="newProdPrice" placeholder="Prezzo (€)" step="0.50" style="flex:1;">
                 </div>
-                
-                <!-- Datalist per i suggerimenti dinamici delle categorie -->
-                <input type="text" id="newCat" placeholder="Categoria (es. Cocktails, Caffetteria)" list="categorySuggestions">
-                <datalist id="categorySuggestions"></datalist>
-                
-                <button onclick="addProduct()">SALVA ELEMENTO</button>
-            </div>
+                <select id="newProdCat">
+                    <option value="">Seleziona Categoria...</option>
+                </select>
+                <button onclick="addProduct()">SALVA PRODOTTO</button>
 
-            <!-- 2. PANNELLO RIORDINA -->
-            <div id="panel-reorder" class="panel">
-                <h2>Trascina per riordinare il menu</h2>
-                <p style="font-size:13px; color:var(--text-secondary); margin-top:-15px; margin-bottom:20px;">
-                    I prodotti sono divisi per categoria. L'ordine che imposti qui si rifletterà nel menù pubblico.
-                </p>
-                <button onclick="saveOrder()" style="margin-bottom: 15px;">SALVA NUOVO ORDINE</button>
-                <div id="reorder-container">
-                    <!-- Liste drag & drop divise per categoria inserite via JS -->
+                <h2 style="margin-top: 40px;">Aggiungi Nuova Categoria</h2>
+                <div class="row">
+                    <input type="text" id="newCatName" placeholder="Nome Categoria (es. Vini Bianchi)" style="flex:2; margin-bottom:0;">
+                    <button onclick="addCategory()" style="flex:1;">SALVA CATEGORIA</button>
                 </div>
             </div>
 
-            <!-- 3. PANNELLO GESTISCI -->
-            <div id="panel-manage" class="panel">
-                <h2>Modifica, Nascondi o Elimina</h2>
-                
-                <!-- Barra Filtri -->
+            <!-- 2. PANNELLO PRODOTTI -->
+            <div id="panel-products" class="panel">
+                <h2>Modifica, Nascondi o Elimina Prodotti</h2>
                 <div class="row filters-row">
-                    <input type="text" id="searchFilter" placeholder="🔍 Cerca per nome..." oninput="filterManageList()" style="flex:2; margin-bottom:0;">
-                    <select id="categoryFilter" onchange="filterManageList()" style="flex:1; margin-bottom:0;">
+                    <input type="text" id="searchProd" placeholder="🔍 Cerca prodotto..." oninput="renderManageProducts()" style="flex:2; margin-bottom:0;">
+                    <select id="filterProdCat" onchange="renderManageProducts()" style="flex:1; margin-bottom:0;">
                         <option value="">Tutte le Categorie</option>
-                        <!-- Opzioni popolate via JS -->
                     </select>
                 </div>
+                <div id="manage-products-list" class="list-container"></div>
+            </div>
 
-                <div id="manage-list" class="list-container">
-                    <!-- I dati vengono inseriti qui via JS -->
-                </div>
+            <!-- 3. PANNELLO CATEGORIE -->
+            <div id="panel-categories" class="panel">
+                <h2>Gestisci Categorie</h2>
+                <p style="font-size: 13px; color: var(--text-secondary);">Attenzione: eliminare una categoria eliminerà anche tutti i prodotti al suo interno.</p>
+                <div id="manage-categories-list" class="list-container"></div>
+            </div>
+
+            <!-- 4. PANNELLO RIORDINA -->
+            <div id="panel-reorder" class="panel">
+                <h2>Struttura del Menù</h2>
+                
+                <h3>1. Ordine Categorie</h3>
+                <p style="font-size:13px; color:var(--text-secondary); margin-top:-10px;">Trascina le categorie per decidere in che ordine appariranno sul sito.</p>
+                <div id="reorder-cats-list" class="list-container sortable-group-cats" style="margin-bottom: 15px;"></div>
+                <button onclick="saveCategoriesOrder()">SALVA ORDINE CATEGORIE</button>
+
+                <h3 style="margin-top: 40px;">2. Ordine Prodotti</h3>
+                <p style="font-size:13px; color:var(--text-secondary); margin-top:-10px;">Trascina i prodotti all'interno della loro categoria.</p>
+                <button onclick="saveProductsOrder()" style="margin-bottom: 20px;">SALVA ORDINE PRODOTTI</button>
+                <div id="reorder-prods-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE EDIT PRODOTTO -->
+    <div id="modalEditProduct" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Modifica Prodotto</h3>
+            <input type="hidden" id="editProdId">
+            <label style="font-size: 12px; color: var(--text-secondary);">Nome Prodotto</label>
+            <input type="text" id="editProdName">
+            <label style="font-size: 12px; color: var(--text-secondary);">Prezzo (€)</label>
+            <input type="number" id="editProdPrice" step="0.50">
+            <label style="font-size: 12px; color: var(--text-secondary);">Categoria</label>
+            <select id="editProdCat"></select>
+            <div class="row" style="margin-top: 20px;">
+                <button class="outline" onclick="closeModal('modalEditProduct')">Annulla</button>
+                <button onclick="saveProductEdit()">Salva Modifiche</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE EDIT CATEGORIA -->
+    <div id="modalEditCategory" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Modifica Categoria</h3>
+            <input type="hidden" id="editCatId">
+            <label style="font-size: 12px; color: var(--text-secondary);">Nome Categoria</label>
+            <input type="text" id="editCatName">
+            <div class="row" style="margin-top: 20px;">
+                <button class="outline" onclick="closeModal('modalEditCategory')">Annulla</button>
+                <button onclick="saveCategoryEdit()">Salva Modifiche</button>
             </div>
         </div>
     </div>
 
     <script>
         const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
-        let globalProducts = [];
-        let uniqueCategories = [];
+        
+        // Stato Globale
+        let categories = [];
+        let products = [];
 
-        // --- AUTENTICAZIONE E INIZIALIZZAZIONE ---
+        // --- AUTH ---
         async function checkAuth() {
             const { data: { session } } = await sb.auth.getSession();
             if (session) {
@@ -187,11 +224,10 @@
             }
         }
 
-        function togglePw() {
-            const p = document.getElementById('password');
-            const span = document.querySelector('.toggle-pw');
+        function togglePw(inputId, btn) {
+            const p = document.getElementById(inputId);
             p.type = p.type === 'password' ? 'text' : 'password';
-            span.textContent = p.type === 'password' ? 'Mostra' : 'Nascondi';
+            btn.textContent = p.type === 'password' ? 'Mostra' : 'Nascondi';
         }
 
         async function login() {
@@ -204,155 +240,213 @@
 
         async function logout() { await sb.auth.signOut(); location.reload(); }
 
-        // --- NAVIGAZIONE TABS ---
+        // --- TABS & MODALS ---
         function switchTab(tabId) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('panel-' + tabId).classList.add('active');
             event.target.classList.add('active');
-            
-            if(tabId === 'reorder' || tabId === 'manage') loadData();
         }
 
-        // --- GESTIONE DATI (CRUD) ---
+        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+
+        // --- DATA FETCHING ---
         async function loadData() {
-            const { data, error } = await sb.from('prodotti').select('*').order('posizione', { ascending: true }).order('nome', { ascending: true });
-            if (error) { alert("Errore caricamento: " + error.message); return; }
-            globalProducts = data;
+            // Carica Categorie (tabella 'categories')
+            const { data: catData, error: catErr } = await sb.from('categories').select('*').order('order_index', { ascending: true });
+            // Carica Prodotti (tabella 'products')
+            const { data: prodData, error: prodErr } = await sb.from('products').select('*').order('order_index', { ascending: true });
             
-            // Estrai categorie uniche e ordinale alfabeticamente
-            uniqueCategories = [...new Set(globalProducts.map(p => p.categoria))].sort();
+            if (catErr || prodErr) { alert("Errore connessione DB."); return; }
             
-            updateCategoryDatalist();
-            updateCategoryFilterDropdown();
-            
-            filterManageList(); // Renderizza la lista filtrata nel tab Gestisci
-            renderReorderList(); // Renderizza i gruppi nel tab Riordina
+            categories = catData || [];
+            products = prodData || [];
+
+            populateSelects();
+            renderManageProducts();
+            renderManageCategories();
+            renderReorder();
         }
 
-        // --- AGGIORNAMENTO DINAMICO CATEGORIE (SUGGERIMENTI E FILTRI) ---
-        function updateCategoryDatalist() {
-            const datalist = document.getElementById('categorySuggestions');
-            datalist.innerHTML = uniqueCategories.map(cat => `<option value="${cat}">`).join('');
+        function populateSelects() {
+            let optionsHTML = `<option value="">Seleziona Categoria...</option>`;
+            let filterHTML = `<option value="">Tutte le Categorie</option>`;
+            
+            categories.forEach(c => {
+                const opt = `<option value="${c.id}">${c.name}</option>`;
+                optionsHTML += opt;
+                filterHTML += opt;
+            });
+
+            document.getElementById('newProdCat').innerHTML = optionsHTML;
+            document.getElementById('editProdCat').innerHTML = optionsHTML; // Per la modale
+            
+            const filterDropdown = document.getElementById('filterProdCat');
+            const currentVal = filterDropdown.value;
+            filterDropdown.innerHTML = filterHTML;
+            if(currentVal) filterDropdown.value = currentVal;
         }
 
-        function updateCategoryFilterDropdown() {
-            const filterDropdown = document.getElementById('categoryFilter');
-            // Mantiene il valore attualmente selezionato se presente
-            const currentSelection = filterDropdown.value; 
+        // --- ADD ---
+        async function addCategory() {
+            const name = document.getElementById('newCatName').value.trim();
+            if(!name) return alert("Inserisci un nome per la categoria");
             
-            let html = `<option value="">Tutte le Categorie</option>`;
-            html += uniqueCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
-            filterDropdown.innerHTML = html;
-            
-            if(uniqueCategories.includes(currentSelection)) {
-                filterDropdown.value = currentSelection;
-            }
+            const { error } = await sb.from('categories').insert([{ name, order_index: categories.length }]);
+            if(error) alert(error.message); else { document.getElementById('newCatName').value = ''; loadData(); alert("Categoria aggiunta!"); }
         }
 
         async function addProduct() {
-            const nome = document.getElementById('newName').value.trim();
-            const prezzo = document.getElementById('newPrice').value;
-            const categoria = document.getElementById('newCat').value.trim();
+            const name = document.getElementById('newProdName').value.trim();
+            const price = document.getElementById('newProdPrice').value;
+            const category_id = document.getElementById('newProdCat').value;
 
-            if (!nome || !prezzo || !categoria) { alert("Compila tutti i campi"); return; }
+            if(!name || !price || !category_id) return alert("Compila nome, prezzo e seleziona una categoria");
 
-            const { error } = await sb.from('prodotti').insert([{ nome, prezzo: parseFloat(prezzo), categoria }]);
-            if (!error) {
-                alert("Prodotto aggiunto con successo!");
-                document.getElementById('newName').value = '';
-                document.getElementById('newPrice').value = '';
-                document.getElementById('newCat').value = '';
-                loadData();
-            } else alert(error.message);
-        }
-
-        // --- GESTISCI (Filtri, Modifica, Nascondi, Elimina) ---
-        function filterManageList() {
-            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
-            const selectedCategory = document.getElementById('categoryFilter').value;
+            const prodsInCat = products.filter(p => p.category_id == category_id).length;
+            const { error } = await sb.from('products').insert([{ name, price: parseFloat(price), category_id: parseInt(category_id), order_index: prodsInCat }]);
             
-            const filteredProducts = globalProducts.filter(p => {
-                const matchesSearch = p.nome.toLowerCase().includes(searchTerm);
-                const matchesCategory = selectedCategory === "" || p.categoria === selectedCategory;
-                return matchesSearch && matchesCategory;
-            });
-            
-            renderManageListHTML(filteredProducts);
-        }
-
-        function renderManageListHTML(productsToRender) {
-            const container = document.getElementById('manage-list');
-            
-            if (productsToRender.length === 0) {
-                container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-secondary);">Nessun prodotto trovato.</div>`;
-                return;
+            if(error) alert(error.message); 
+            else { 
+                document.getElementById('newProdName').value = ''; 
+                document.getElementById('newProdPrice').value = '';
+                document.getElementById('newProdCat').value = '';
+                loadData(); 
+                alert("Prodotto aggiunto!"); 
             }
+        }
 
-            container.innerHTML = productsToRender.map(p => `
-                <div class="list-item ${p.visibile ? '' : 'item-hidden'}">
+        // --- MANAGE PRODUCTS ---
+        function renderManageProducts() {
+            const search = document.getElementById('searchProd').value.toLowerCase();
+            const catFilter = document.getElementById('filterProdCat').value;
+            const container = document.getElementById('manage-products-list');
+
+            const filtered = products.filter(p => {
+                const matchSearch = p.name.toLowerCase().includes(search);
+                const matchCat = catFilter === "" || p.category_id == catFilter;
+                return matchSearch && matchCat;
+            });
+
+            if(filtered.length === 0) { container.innerHTML = `<p style="text-align:center; color:gray;">Nessun prodotto trovato.</p>`; return; }
+
+            container.innerHTML = filtered.map(p => {
+                const catName = categories.find(c => c.id === p.category_id)?.name || 'Sconosciuta';
+                return `
+                <div class="list-item ${p.is_visible ? '' : 'item-hidden'}">
                     <div class="item-info">
-                        <span class="item-name">${p.nome} - €${parseFloat(p.prezzo).toFixed(2)}</span>
-                        <span class="item-cat">${p.categoria} ${p.visibile ? '' : '(Nascosto)'}</span>
+                        <span class="item-name">${p.name} - €${parseFloat(p.price).toFixed(2)}</span>
+                        <span class="item-cat">${catName} ${p.is_visible ? '' : '(Nascosto)'}</span>
                     </div>
                     <div class="actions">
-                        <button class="btn-sm btn-edit" onclick="editProduct(${p.id}, '${p.nome.replace(/'/g, "\\'")}', ${p.prezzo}, '${p.categoria.replace(/'/g, "\\'")}')">Edit</button>
-                        <button class="btn-sm btn-hide" onclick="toggleVisibility(${p.id}, ${p.visibile})">${p.visibile ? 'Nascondi' : 'Mostra'}</button>
-                        <button class="btn-sm btn-delete" onclick="deleteProduct(${p.id})">Elimina</button>
+                        <button class="btn-sm btn-edit" onclick="openEditProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, ${p.category_id})">Modifica</button>
+                        <button class="btn-sm btn-hide" onclick="toggleVisibility('products', ${p.id}, ${p.is_visible})">${p.is_visible ? 'Nascondi' : 'Mostra'}</button>
+                        <button class="btn-sm btn-delete" onclick="deleteItem('products', ${p.id})">Elimina</button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function openEditProduct(id, name, price, catId) {
+            document.getElementById('editProdId').value = id;
+            document.getElementById('editProdName').value = name;
+            document.getElementById('editProdPrice').value = price;
+            document.getElementById('editProdCat').value = catId;
+            openModal('modalEditProduct');
+        }
+
+        async function saveProductEdit() {
+            const id = document.getElementById('editProdId').value;
+            const name = document.getElementById('editProdName').value.trim();
+            const price = document.getElementById('editProdPrice').value;
+            const category_id = document.getElementById('editProdCat').value;
+
+            if(!name || !price || !category_id) return alert("Compila tutti i campi");
+
+            const { error } = await sb.from('products').update({ name, price: parseFloat(price), category_id: parseInt(category_id) }).eq('id', id);
+            if(error) alert(error.message); else { closeModal('modalEditProduct'); loadData(); }
+        }
+
+        // --- MANAGE CATEGORIES ---
+        function renderManageCategories() {
+            const container = document.getElementById('manage-categories-list');
+            if(categories.length === 0) { container.innerHTML = `<p style="text-align:center; color:gray;">Nessuna categoria.</p>`; return; }
+
+            container.innerHTML = categories.map(c => `
+                <div class="list-item ${c.is_visible ? '' : 'item-hidden'}">
+                    <div class="item-info">
+                        <span class="item-name">${c.name}</span>
+                        <span class="item-cat">Categoria ${c.is_visible ? '' : '(Nascosta)'}</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-sm btn-edit" onclick="openEditCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')">Modifica</button>
+                        <button class="btn-sm btn-hide" onclick="toggleVisibility('categories', ${c.id}, ${c.is_visible})">${c.is_visible ? 'Nascondi' : 'Mostra'}</button>
+                        <button class="btn-sm btn-delete" onclick="deleteItem('categories', ${c.id})">Elimina</button>
                     </div>
                 </div>
             `).join('');
         }
 
-        async function editProduct(id, oldNome, oldPrezzo, oldCat) {
-            const nuovoNome = prompt("Nuovo nome del prodotto:", oldNome);
-            if (nuovoNome === null) return;
-            const nuovoPrezzo = prompt("Nuovo prezzo (€):", oldPrezzo);
-            if (nuovoPrezzo === null) return;
-            const nuovaCat = prompt("Nuova categoria:", oldCat);
-            if (nuovaCat === null) return;
-
-            const { error } = await sb.from('prodotti').update({ 
-                nome: nuovoNome, 
-                prezzo: parseFloat(nuovoPrezzo), 
-                categoria: nuovaCat 
-            }).eq('id', id);
-            
-            if (!error) loadData(); else alert("Errore: " + error.message);
+        function openEditCategory(id, name) {
+            document.getElementById('editCatId').value = id;
+            document.getElementById('editCatName').value = name;
+            openModal('modalEditCategory');
         }
 
-        async function toggleVisibility(id, currentlyVisible) {
-            const { error } = await sb.from('prodotti').update({ visibile: !currentlyVisible }).eq('id', id);
-            if (!error) loadData(); else alert(error.message);
+        async function saveCategoryEdit() {
+            const id = document.getElementById('editCatId').value;
+            const name = document.getElementById('editCatName').value.trim();
+            if(!name) return alert("Inserisci il nome");
+
+            const { error } = await sb.from('categories').update({ name }).eq('id', id);
+            if(error) alert(error.message); else { closeModal('modalEditCategory'); loadData(); }
         }
 
-        async function deleteProduct(id) {
-            if (confirm("Sei sicuro di voler eliminare definitivamente questo prodotto?")) {
-                const { error } = await sb.from('prodotti').delete().eq('id', id);
-                if (!error) loadData(); else alert(error.message);
+        // --- COMMON ACTIONS ---
+        async function toggleVisibility(table, id, isVisible) {
+            const { error } = await sb.from(table).update({ is_visible: !isVisible }).eq('id', id);
+            if(error) alert(error.message); else loadData();
+        }
+
+        async function deleteItem(table, id) {
+            const msg = table === 'categories' ? "ELIMINARE LA CATEGORIA ELIMINERA' ANCHE TUTTI I PIATTI AL SUO INTERNO. Confermi?" : "Eliminare definitivamente questo piatto?";
+            if(confirm(msg)) {
+                const { error } = await sb.from(table).delete().eq('id', id);
+                if(error) alert(error.message); else loadData();
             }
         }
 
-        // --- RIORDINA (Drag & Drop diviso per categorie) ---
-        function renderReorderList() {
-            const container = document.getElementById('reorder-container');
-            let html = '';
+        // --- REORDER ---
+        function renderReorder() {
+            // 1. Categorie
+            const catContainer = document.getElementById('reorder-cats-list');
+            catContainer.innerHTML = categories.map(c => `
+                <div class="list-item" data-id="${c.id}">
+                    <div style="display:flex; align-items:center;">
+                        <span class="drag-handle">☰</span>
+                        <span class="item-name">${c.name}</span>
+                    </div>
+                </div>
+            `).join('');
 
-            // Crea un blocco separato per ogni categoria
-            uniqueCategories.forEach(cat => {
-                const categoryProducts = globalProducts.filter(p => p.categoria === cat);
-                
-                html += `
+            new Sortable(catContainer, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost' });
+
+            // 2. Prodotti per categoria
+            const prodContainer = document.getElementById('reorder-prods-container');
+            let prodHTML = '';
+            categories.forEach(c => {
+                const catProds = products.filter(p => p.category_id === c.id);
+                prodHTML += `
                     <div class="category-reorder-group">
-                        <div class="category-header">${cat}</div>
-                        <div class="list-container sortable-group" data-category="${cat}" style="margin-top:10px;">
-                            ${categoryProducts.map(p => `
+                        <div style="color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; font-size:14px;">${c.name}</div>
+                        <div class="list-container sortable-group-prods" style="margin-top:0;">
+                            ${catProds.map(p => `
                                 <div class="list-item" data-id="${p.id}">
                                     <div style="display:flex; align-items:center;">
                                         <span class="drag-handle">☰</span>
-                                        <div class="item-info">
-                                            <span class="item-name">${p.nome}</span>
-                                        </div>
+                                        <span class="item-name">${p.name}</span>
                                     </div>
                                 </div>
                             `).join('')}
@@ -360,46 +454,33 @@
                     </div>
                 `;
             });
+            prodContainer.innerHTML = prodHTML;
 
-            container.innerHTML = html;
-
-            // Inizializza SortableJS INDIPENDENTEMENTE per ogni categoria
-            // In questo modo l'utente riordina i piatti solo all'interno della loro categoria.
-            document.querySelectorAll('.sortable-group').forEach(group => {
-                new Sortable(group, {
-                    animation: 150,
-                    handle: '.drag-handle',
-                    ghostClass: 'sortable-ghost'
-                });
+            document.querySelectorAll('.sortable-group-prods').forEach(group => {
+                new Sortable(group, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost' });
             });
         }
 
-        async function saveOrder() {
-            // Seleziona tutti gli elementi di tutte le liste ordinate sul DOM
-            const items = document.querySelectorAll('.sortable-group .list-item');
+        async function saveCategoriesOrder() {
+            const items = document.querySelectorAll('#reorder-cats-list .list-item');
+            const updates = Array.from(items).map((item, index) => ({ id: item.getAttribute('data-id'), order_index: index }));
             
-            // Assegna la posizione sequenziale. Essendo già raggruppati per categoria nel DOM,
-            // l'indice progressivo assicurerà che l'ordinamento interno sia rispettato.
-            const updates = Array.from(items).map((item, index) => ({
-                id: item.getAttribute('data-id'),
-                posizione: index
-            }));
-
-            const btn = event.target;
-            btn.textContent = "Salvataggio in corso...";
-            btn.style.opacity = "0.7";
-
+            const btn = event.target; btn.textContent = "Salvataggio...";
             try {
-                // Salvataggio multiplo tramite chiamate parallele per velocità
-                await Promise.all(updates.map(u => sb.from('prodotti').update({ posizione: u.posizione }).eq('id', u.id)));
-                alert("Nuovo ordine salvato con successo!");
-                loadData();
-            } catch(e) {
-                alert("Errore durante il salvataggio.");
-            } finally {
-                btn.textContent = "SALVA NUOVO ORDINE";
-                btn.style.opacity = "1";
-            }
+                await Promise.all(updates.map(u => sb.from('categories').update({ order_index: u.order_index }).eq('id', u.id)));
+                alert("Ordine categorie salvato!"); loadData();
+            } catch(e) { alert("Errore di salvataggio"); } finally { btn.textContent = "SALVA ORDINE CATEGORIE"; }
+        }
+
+        async function saveProductsOrder() {
+            const items = document.querySelectorAll('.sortable-group-prods .list-item');
+            const updates = Array.from(items).map((item, index) => ({ id: item.getAttribute('data-id'), order_index: index }));
+            
+            const btn = event.target; btn.textContent = "Salvataggio...";
+            try {
+                await Promise.all(updates.map(u => sb.from('products').update({ order_index: u.order_index }).eq('id', u.id)));
+                alert("Ordine prodotti salvato!"); loadData();
+            } catch(e) { alert("Errore di salvataggio"); } finally { btn.textContent = "SALVA ORDINE PRODOTTI"; }
         }
 
         window.onload = checkAuth;
