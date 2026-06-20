@@ -53,7 +53,10 @@
 
         /* Form & Inputs */
         input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); background: rgba(30, 35, 30, 0.4); color: white; box-sizing: border-box; font-size: 15px; margin-bottom: 15px; }
-        input:focus { outline: none; border-color: var(--accent); }
+        input:focus, select:focus { outline: none; border-color: var(--accent); }
+        
+        /* Fix for select options color in some browsers */
+        select option { background-color: #111411; color: white; }
         
         button { padding: 14px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; width: 100%; font-size: 15px; }
         button:hover { opacity: 0.9; transform: translateY(-1px); }
@@ -62,6 +65,9 @@
 
         .row { display: flex; gap: 15px; }
         .row > * { flex: 1; }
+        
+        /* Filters specific */
+        .filters-row { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 20px; align-items: center; }
 
         /* List Items (Manage & Reorder) */
         .list-container { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
@@ -73,8 +79,12 @@
         .item-cat { font-size: 12px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; }
         .item-hidden .item-name { color: var(--text-secondary); text-decoration: line-through; }
 
+        /* Category Headers for Reorder */
+        .category-header { margin: 25px 0 10px 0; font-size: 15px; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+
         /* Drag handle */
         .drag-handle { cursor: grab; font-size: 20px; color: var(--text-secondary); padding-right: 15px; }
+        .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { opacity: 0.4; background: rgba(48, 209, 88, 0.1); border-color: var(--accent); }
 
         /* Action Buttons */
@@ -122,22 +132,39 @@
                     <input type="text" id="newName" placeholder="Nome (es. Mojito)" style="flex:2;">
                     <input type="number" id="newPrice" placeholder="Prezzo (€)" step="0.50" style="flex:1;">
                 </div>
-                <input type="text" id="newCat" placeholder="Categoria (es. Cocktails, Caffetteria)">
+                
+                <!-- Datalist per i suggerimenti dinamici delle categorie -->
+                <input type="text" id="newCat" placeholder="Categoria (es. Cocktails, Caffetteria)" list="categorySuggestions">
+                <datalist id="categorySuggestions"></datalist>
+                
                 <button onclick="addProduct()">SALVA ELEMENTO</button>
             </div>
 
             <!-- 2. PANNELLO RIORDINA -->
             <div id="panel-reorder" class="panel">
                 <h2>Trascina per riordinare il menu</h2>
+                <p style="font-size:13px; color:var(--text-secondary); margin-top:-15px; margin-bottom:20px;">
+                    I prodotti sono divisi per categoria. L'ordine che imposti qui si rifletterà nel menù pubblico.
+                </p>
                 <button onclick="saveOrder()" style="margin-bottom: 15px;">SALVA NUOVO ORDINE</button>
-                <div id="sortable-list" class="list-container">
-                    <!-- I dati vengono inseriti qui via JS -->
+                <div id="reorder-container">
+                    <!-- Liste drag & drop divise per categoria inserite via JS -->
                 </div>
             </div>
 
             <!-- 3. PANNELLO GESTISCI -->
             <div id="panel-manage" class="panel">
                 <h2>Modifica, Nascondi o Elimina</h2>
+                
+                <!-- Barra Filtri -->
+                <div class="row filters-row">
+                    <input type="text" id="searchFilter" placeholder="🔍 Cerca per nome..." oninput="filterManageList()" style="flex:2; margin-bottom:0;">
+                    <select id="categoryFilter" onchange="filterManageList()" style="flex:1; margin-bottom:0;">
+                        <option value="">Tutte le Categorie</option>
+                        <!-- Opzioni popolate via JS -->
+                    </select>
+                </div>
+
                 <div id="manage-list" class="list-container">
                     <!-- I dati vengono inseriti qui via JS -->
                 </div>
@@ -148,6 +175,7 @@
     <script>
         const sb = supabase.createClient('https://germswzsfsxxlawqxsgt.supabase.co', 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa');
         let globalProducts = [];
+        let uniqueCategories = [];
 
         // --- AUTENTICAZIONE E INIZIALIZZAZIONE ---
         async function checkAuth() {
@@ -192,14 +220,40 @@
             if (error) { alert("Errore caricamento: " + error.message); return; }
             globalProducts = data;
             
-            renderManageList();
-            renderReorderList();
+            // Estrai categorie uniche e ordinale alfabeticamente
+            uniqueCategories = [...new Set(globalProducts.map(p => p.categoria))].sort();
+            
+            updateCategoryDatalist();
+            updateCategoryFilterDropdown();
+            
+            filterManageList(); // Renderizza la lista filtrata nel tab Gestisci
+            renderReorderList(); // Renderizza i gruppi nel tab Riordina
+        }
+
+        // --- AGGIORNAMENTO DINAMICO CATEGORIE (SUGGERIMENTI E FILTRI) ---
+        function updateCategoryDatalist() {
+            const datalist = document.getElementById('categorySuggestions');
+            datalist.innerHTML = uniqueCategories.map(cat => `<option value="${cat}">`).join('');
+        }
+
+        function updateCategoryFilterDropdown() {
+            const filterDropdown = document.getElementById('categoryFilter');
+            // Mantiene il valore attualmente selezionato se presente
+            const currentSelection = filterDropdown.value; 
+            
+            let html = `<option value="">Tutte le Categorie</option>`;
+            html += uniqueCategories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            filterDropdown.innerHTML = html;
+            
+            if(uniqueCategories.includes(currentSelection)) {
+                filterDropdown.value = currentSelection;
+            }
         }
 
         async function addProduct() {
-            const nome = document.getElementById('newName').value;
+            const nome = document.getElementById('newName').value.trim();
             const prezzo = document.getElementById('newPrice').value;
-            const categoria = document.getElementById('newCat').value;
+            const categoria = document.getElementById('newCat').value.trim();
 
             if (!nome || !prezzo || !categoria) { alert("Compila tutti i campi"); return; }
 
@@ -213,10 +267,29 @@
             } else alert(error.message);
         }
 
-        // --- GESTISCI (Modifica, Nascondi, Elimina) ---
-        function renderManageList() {
+        // --- GESTISCI (Filtri, Modifica, Nascondi, Elimina) ---
+        function filterManageList() {
+            const searchTerm = document.getElementById('searchFilter').value.toLowerCase();
+            const selectedCategory = document.getElementById('categoryFilter').value;
+            
+            const filteredProducts = globalProducts.filter(p => {
+                const matchesSearch = p.nome.toLowerCase().includes(searchTerm);
+                const matchesCategory = selectedCategory === "" || p.categoria === selectedCategory;
+                return matchesSearch && matchesCategory;
+            });
+            
+            renderManageListHTML(filteredProducts);
+        }
+
+        function renderManageListHTML(productsToRender) {
             const container = document.getElementById('manage-list');
-            container.innerHTML = globalProducts.map(p => `
+            
+            if (productsToRender.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-secondary);">Nessun prodotto trovato.</div>`;
+                return;
+            }
+
+            container.innerHTML = productsToRender.map(p => `
                 <div class="list-item ${p.visibile ? '' : 'item-hidden'}">
                     <div class="item-info">
                         <span class="item-name">${p.nome} - €${parseFloat(p.prezzo).toFixed(2)}</span>
@@ -260,42 +333,64 @@
             }
         }
 
-        // --- RIORDINA (Drag & Drop) ---
+        // --- RIORDINA (Drag & Drop diviso per categorie) ---
         function renderReorderList() {
-            const container = document.getElementById('sortable-list');
-            container.innerHTML = globalProducts.map(p => `
-                <div class="list-item" data-id="${p.id}">
-                    <div style="display:flex; align-items:center;">
-                        <span class="drag-handle">☰</span>
-                        <div class="item-info">
-                            <span class="item-name">${p.nome}</span>
-                            <span class="item-cat">${p.categoria}</span>
+            const container = document.getElementById('reorder-container');
+            let html = '';
+
+            // Crea un blocco separato per ogni categoria
+            uniqueCategories.forEach(cat => {
+                const categoryProducts = globalProducts.filter(p => p.categoria === cat);
+                
+                html += `
+                    <div class="category-reorder-group">
+                        <div class="category-header">${cat}</div>
+                        <div class="list-container sortable-group" data-category="${cat}" style="margin-top:10px;">
+                            ${categoryProducts.map(p => `
+                                <div class="list-item" data-id="${p.id}">
+                                    <div style="display:flex; align-items:center;">
+                                        <span class="drag-handle">☰</span>
+                                        <div class="item-info">
+                                            <span class="item-name">${p.nome}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            });
 
-            // Inizializza SortableJS
-            new Sortable(container, {
-                animation: 150,
-                handle: '.drag-handle',
-                ghostClass: 'sortable-ghost'
+            container.innerHTML = html;
+
+            // Inizializza SortableJS INDIPENDENTEMENTE per ogni categoria
+            // In questo modo l'utente riordina i piatti solo all'interno della loro categoria.
+            document.querySelectorAll('.sortable-group').forEach(group => {
+                new Sortable(group, {
+                    animation: 150,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost'
+                });
             });
         }
 
         async function saveOrder() {
-            const items = document.querySelectorAll('#sortable-list .list-item');
+            // Seleziona tutti gli elementi di tutte le liste ordinate sul DOM
+            const items = document.querySelectorAll('.sortable-group .list-item');
+            
+            // Assegna la posizione sequenziale. Essendo già raggruppati per categoria nel DOM,
+            // l'indice progressivo assicurerà che l'ordinamento interno sia rispettato.
             const updates = Array.from(items).map((item, index) => ({
                 id: item.getAttribute('data-id'),
                 posizione: index
             }));
 
-            // Salvataggio multiplo tramite chiamate parallele per velocità
             const btn = event.target;
             btn.textContent = "Salvataggio in corso...";
             btn.style.opacity = "0.7";
 
             try {
+                // Salvataggio multiplo tramite chiamate parallele per velocità
                 await Promise.all(updates.map(u => sb.from('prodotti').update({ posizione: u.posizione }).eq('id', u.id)));
                 alert("Nuovo ordine salvato con successo!");
                 loadData();
