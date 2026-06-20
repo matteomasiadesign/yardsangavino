@@ -253,12 +253,11 @@
 
         // --- DATA FETCHING ---
         async function loadData() {
-            // Carica Categorie (tabella 'categories')
+            // Nota: Se ci sono problemi con le policy RLS, questo admin fetcherà tutto
             const { data: catData, error: catErr } = await sb.from('categories').select('*').order('order_index', { ascending: true });
-            // Carica Prodotti (tabella 'products')
             const { data: prodData, error: prodErr } = await sb.from('products').select('*').order('order_index', { ascending: true });
             
-            if (catErr || prodErr) { alert("Errore connessione DB."); return; }
+            if (catErr || prodErr) { alert("Errore connessione DB."); console.error(catErr, prodErr); return; }
             
             categories = catData || [];
             products = prodData || [];
@@ -438,21 +437,23 @@
             let prodHTML = '';
             categories.forEach(c => {
                 const catProds = products.filter(p => p.category_id === c.id);
-                prodHTML += `
-                    <div class="category-reorder-group">
-                        <div style="color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; font-size:14px;">${c.name}</div>
-                        <div class="list-container sortable-group-prods" style="margin-top:0;">
-                            ${catProds.map(p => `
-                                <div class="list-item" data-id="${p.id}">
-                                    <div style="display:flex; align-items:center;">
-                                        <span class="drag-handle">☰</span>
-                                        <span class="item-name">${p.name}</span>
+                if(catProds.length > 0) {
+                    prodHTML += `
+                        <div class="category-reorder-group">
+                            <div style="color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; font-size:14px;">${c.name}</div>
+                            <div class="list-container sortable-group-prods" style="margin-top:0;">
+                                ${catProds.map(p => `
+                                    <div class="list-item" data-id="${p.id}">
+                                        <div style="display:flex; align-items:center;">
+                                            <span class="drag-handle">☰</span>
+                                            <span class="item-name">${p.name}</span>
+                                        </div>
                                     </div>
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             });
             prodContainer.innerHTML = prodHTML;
 
