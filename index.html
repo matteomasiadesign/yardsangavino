@@ -49,6 +49,10 @@
             object-fit: contain;
         }
 
+        @media (max-width: 560px) {
+            .logo-img { max-width: 234px; max-height: 104px; }
+        }
+
         h1 { 
             font-family: 'Courier New', Courier, monospace; 
             font-weight: 900; 
@@ -78,10 +82,21 @@
         .lang-fab {
             position: fixed;
             right: 20px;
-            bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+            bottom: calc(36px + env(safe-area-inset-bottom, 0px));
             z-index: 50;
         }
         .lang-fab.loading { opacity: 0.6; pointer-events: none; }
+
+        /* Da qui in su la card del menù (max-width: 500px) resta centrata con
+           margini laterali ampi: ancoriamo il FAB al bordo della card invece
+           che all'angolo della finestra, altrimenti su schermi larghi
+           sembrerebbe perso lontano dal contenuto. */
+        @media (min-width: 561px) {
+            .lang-fab {
+                right: calc(50vw - 250px - 8px);
+                bottom: 28px;
+            }
+        }
 
         .lang-fab-main {
             width: 56px;
@@ -143,6 +158,19 @@
             object-fit: cover;
             border-radius: 50%;
             display: block;
+        }
+
+        .flag-fallback {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent);
         }
         
         .category { 
@@ -299,12 +327,12 @@
             if (!main || !fan) return;
 
             const current = LANGS.find(l => l.code === currentLang) || LANGS[0];
-            main.innerHTML = `<img class="flag-img" src="${flagUrl(current.flag)}" alt="${current.label}">`;
+            main.innerHTML = `<img class="flag-img" src="${flagUrl(current.flag)}" alt="${current.label}" onerror="this.outerHTML='&lt;span class=&quot;flag-fallback&quot;&gt;${current.code.toUpperCase()}&lt;/span&gt;'">`;
 
             const others = LANGS.filter(l => l.code !== currentLang);
             fan.innerHTML = others.map(l =>
                 `<button class="lang-fan-btn" onclick="selectLanguage('${l.code}')" aria-label="${l.label}">
-                    <img class="flag-img" src="${flagUrl(l.flag)}" alt="${l.label}">
+                    <img class="flag-img" src="${flagUrl(l.flag)}" alt="${l.label}" onerror="this.outerHTML='&lt;span class=&quot;flag-fallback&quot;&gt;${l.code.toUpperCase()}&lt;/span&gt;'">
                 </button>`
             ).join('');
         }
