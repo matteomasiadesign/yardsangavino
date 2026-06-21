@@ -15,6 +15,7 @@
             --accent: #39FF14;
             --text: #ffffff;
             --glow: 0 0 15px rgba(57, 255, 20, 0.3);
+            --collapse-duration: 0.35s;
         }
 
         body {
@@ -75,6 +76,11 @@
             font-weight: 600; 
             color: var(--accent); 
             transition: background 0.3s;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(15px);
         }
         
         .cat-header:hover { background: rgba(57, 255, 20, 0.03); }
@@ -84,7 +90,7 @@
             max-height: 0;
             overflow: hidden;
             opacity: 0;
-            transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease, padding 0.4s ease;
+            transition: max-height var(--collapse-duration) cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, padding var(--collapse-duration) ease;
         }
         
         .items.active { 
@@ -259,45 +265,59 @@
         }
 
         window.toggleCategory = function(element) {
-            const categoryDiv = element.parentElement;
             const itemsContainer = element.nextElementSibling;
-            const arrow = element.querySelector('.arrow');
             const isActive = itemsContainer.classList.contains('active');
+            const allCategories = Array.from(document.querySelectorAll('.category'));
+            const clickedIndex = allCategories.indexOf(element.parentElement);
 
-            // Chiude tutte le altre categorie aperte
-            document.querySelectorAll('.items').forEach(item => {
-                if (item !== itemsContainer) {
-                    item.classList.remove('active');
-                    item.style.maxHeight = null;
-                    const otherArrow = item.previousElementSibling.querySelector('.arrow');
-                    if (otherArrow) otherArrow.textContent = '▼';
-                }
+            // Durata della transizione, letta dalla variabile CSS per restare sempre sincronizzata
+            const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--collapse-duration').trim();
+            const collapseDuration = parseFloat(durationStr) * 1000 || 350;
+
+            let mustWaitForCloseAbove = false;
+
+            // Chiude in modo animato tutte le altre categorie aperte
+            document.querySelectorAll('.items.active').forEach(otherItems => {
+                if (otherItems === itemsContainer) return;
+
+                const otherCategoryDiv = otherItems.closest('.category');
+                const otherIndex = allCategories.indexOf(otherCategoryDiv);
+                if (otherIndex < clickedIndex) mustWaitForCloseAbove = true;
+
+                // Fissa l'altezza attuale esplicitamente prima di animare verso 0
+                otherItems.style.maxHeight = otherItems.scrollHeight + 'px';
+                void otherItems.offsetHeight; // forza il reflow
+                otherItems.style.maxHeight = '0px';
+                otherItems.classList.remove('active');
+
+                const otherArrow = otherCategoryDiv.querySelector('.arrow');
+                if (otherArrow) otherArrow.textContent = '▼';
             });
 
-            // Attiva o disattiva la tendina cliccata
             if (isActive) {
+                // L'utente ha chiuso la categoria che era aperta: nessuno scroll
+                itemsContainer.style.maxHeight = '0px';
                 itemsContainer.classList.remove('active');
-                itemsContainer.style.maxHeight = null;
-                arrow.textContent = '▼';
-            } else {
-                itemsContainer.classList.add('active');
-                // Sfrutta scrollHeight per calcolare dinamicamente l'altezza esatta
-                itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 40 + "px";
-                arrow.textContent = '▲';
-                
-                // Spostamento fluido per non nascondere l'intestazione
-                setTimeout(() => {
-                    const offset = 40; 
-                    const bodyRect = document.body.getBoundingClientRect().top;
-                    const elementRect = categoryDiv.getBoundingClientRect().top;
-                    const elementPosition = elementRect - bodyRect;
-                    const offsetPosition = elementPosition - offset;
+                element.querySelector('.arrow').textContent = '▼';
+                return;
+            }
 
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-                }, 200);
+            // Apre la categoria cliccata
+            itemsContainer.classList.add('active');
+            itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 'px';
+            element.querySelector('.arrow').textContent = '▲';
+
+            const scrollHeaderIntoView = () => {
+                const headerTop = element.getBoundingClientRect().top + window.scrollY;
+                window.scrollTo({ top: headerTop, behavior: 'smooth' });
+            };
+
+            if (mustWaitForCloseAbove) {
+                // Aspetta che la chiusura delle categorie sopra finisca, altrimenti
+                // la posizione dell'header cambierebbe mentre lo scroll è già in corso
+                setTimeout(scrollHeaderIntoView, collapseDuration);
+            } else {
+                requestAnimationFrame(scrollHeaderIntoView);
             }
         };
 
