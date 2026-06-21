@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yard | Admin</title>
+    <title>Yard | Admin Luxury Control</title>
     
     <!-- Librerie: Supabase e SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -471,7 +471,9 @@
                 </div>
             `).join('');
 
-            new Sortable(catContainer, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost' });
+            if (!Sortable.get(catContainer)) {
+                new Sortable(catContainer, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost' });
+            }
 
             // 2. Prodotti per categoria
             const prodContainer = document.getElementById('reorder-prods-container');
@@ -499,30 +501,48 @@
             prodContainer.innerHTML = prodHTML;
 
             document.querySelectorAll('.sortable-group-prods').forEach(group => {
-                new Sortable(group, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost' });
+                if (!Sortable.get(group)) {
+                    new Sortable(group, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost' });
+                }
             });
         }
 
         async function saveCategoriesOrder() {
             const items = document.querySelectorAll('#reorder-cats-list .list-item');
-            const updates = Array.from(items).map((item, index) => ({ id: item.getAttribute('data-id'), order_index: index }));
-            
+            const updates = Array.from(items).map((item, index) => ({ id: parseInt(item.getAttribute('data-id')), order_index: index }));
+
             const btn = event.target; btn.textContent = "Salvataggio...";
-            try {
-                await Promise.all(updates.map(u => sb.from('categories').update({ order_index: u.order_index }).eq('id', u.id)));
-                alert("Ordine categorie salvato!"); loadData();
-            } catch(e) { alert("Errore di salvataggio"); } finally { btn.textContent = "SALVA ORDINE CATEGORIE"; }
+            const errors = [];
+            for (const u of updates) {
+                const { error } = await sb.from('categories').update({ order_index: u.order_index }).eq('id', u.id);
+                if (error) errors.push(`#${u.id}: ${error.message}`);
+            }
+            if (errors.length) {
+                alert("Attenzione, alcuni aggiornamenti sono falliti:\n" + errors.join('\n'));
+            } else {
+                alert("Ordine categorie salvato!");
+            }
+            loadData();
+            btn.textContent = "SALVA ORDINE CATEGORIE";
         }
 
         async function saveProductsOrder() {
             const items = document.querySelectorAll('.sortable-group-prods .list-item');
-            const updates = Array.from(items).map((item, index) => ({ id: item.getAttribute('data-id'), order_index: index }));
-            
+            const updates = Array.from(items).map((item, index) => ({ id: parseInt(item.getAttribute('data-id')), order_index: index }));
+
             const btn = event.target; btn.textContent = "Salvataggio...";
-            try {
-                await Promise.all(updates.map(u => sb.from('products').update({ order_index: u.order_index }).eq('id', u.id)));
-                alert("Ordine prodotti salvato!"); loadData();
-            } catch(e) { alert("Errore di salvataggio"); } finally { btn.textContent = "SALVA ORDINE PRODOTTI"; }
+            const errors = [];
+            for (const u of updates) {
+                const { error } = await sb.from('products').update({ order_index: u.order_index }).eq('id', u.id);
+                if (error) errors.push(`#${u.id}: ${error.message}`);
+            }
+            if (errors.length) {
+                alert("Attenzione, alcuni aggiornamenti sono falliti:\n" + errors.join('\n'));
+            } else {
+                alert("Ordine prodotti salvato!");
+            }
+            loadData();
+            btn.textContent = "SALVA ORDINE PRODOTTI";
         }
 
         window.onload = checkAuth;
