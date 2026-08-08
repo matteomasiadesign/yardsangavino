@@ -2,39 +2,57 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Yard | Menù</title>
-    <!-- Import Supabase JS -->
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
         :root {
-            --bg-color: #0f0f0f;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --border-color: rgba(255, 255, 255, 0.1);
+            --bg-color: #0a0a0a;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+            --border-color: rgba(255, 255, 255, 0.08);
             --accent: #39FF14;
-            --text: #ffffff;
-            --glow: 0 0 15px rgba(57, 255, 20, 0.3);
-            --collapse-duration: 0.35s;
+            --accent-dim: rgba(57, 255, 20, 0.15);
+            --text: #f5f5f7;
+            --text-muted: #a1a1a6;
+            --glow: 0 0 20px rgba(57, 255, 20, 0.25);
+            --collapse-duration: 0.4s;
+            --ease-spring: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg-color);
             background-image:
-                radial-gradient(ellipse 700px 500px at 15% -5%, rgba(57, 255, 20, 0.07), transparent 60%),
-                radial-gradient(ellipse 600px 500px at 90% 110%, rgba(57, 255, 20, 0.05), transparent 60%);
+                radial-gradient(ellipse 800px 600px at 0% 0%, rgba(57, 255, 20, 0.05), transparent 70%),
+                radial-gradient(ellipse 800px 600px at 100% 100%, rgba(57, 255, 20, 0.05), transparent 70%);
             background-attachment: fixed;
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            font-family: 'Inter', sans-serif;
             margin: 0; 
-            padding: 20px; 
+            padding: 24px 20px; 
             display: flex; 
             flex-direction: column; 
             align-items: center;
             min-height: 100vh;
+            line-height: 1.5;
         }
 
-        header { margin: 40px 0; text-align: center; }
+        header { 
+            margin: 20px 0 40px; 
+            text-align: center; 
+            width: 100%;
+            animation: fadeInDown 0.8s var(--ease-spring);
+        }
         
         .logo-container {
             display: flex;
@@ -47,110 +65,240 @@
             max-width: 180px;
             max-height: 80px;
             object-fit: contain;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
         }
 
         @media (max-width: 560px) {
-            .logo-img { max-width: 234px; max-height: 104px; }
+            .logo-img { max-width: 200px; max-height: 90px; }
         }
 
         h1 { 
-            font-family: 'Courier New', Courier, monospace; 
-            font-weight: 900; 
-            font-size: 2.5rem; 
-            letter-spacing: 4px; 
+            font-weight: 700; 
+            font-size: 2.2rem; 
+            letter-spacing: 2px; 
             color: var(--text); 
             margin: 10px 0; 
             text-shadow: var(--glow); 
         }
 
-        .menu-wrapper { width: 100%; max-width: 500px; flex-grow: 1; }
+        .menu-wrapper { 
+            width: 100%; 
+            max-width: 540px; 
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .category { 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color); 
+            border-radius: 24px; 
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s var(--ease-spring);
+            animation: fadeInUp 0.5s var(--ease-spring) both;
+            scroll-margin-top: 20px;
+        }
+        
+        /* Ritardo sequenziale per le animazioni d'ingresso (le prime 10 categorie) */
+        .category:nth-child(1) { animation-delay: 0.1s; }
+        .category:nth-child(2) { animation-delay: 0.15s; }
+        .category:nth-child(3) { animation-delay: 0.2s; }
+        .category:nth-child(4) { animation-delay: 0.25s; }
+        .category:nth-child(5) { animation-delay: 0.3s; }
+        
+        .cat-header { 
+            padding: 22px 24px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-weight: 600;
+            font-size: 1.05rem;
+            letter-spacing: 0.5px;
+            color: var(--text); 
+            transition: background 0.3s, color 0.3s;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: rgba(15, 15, 15, 0.6);
+        }
+
+        .category:has(.items.active) {
+            border-color: var(--accent-dim);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 1px var(--accent-dim);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .category:has(.items.active) .cat-header {
+            color: var(--accent);
+            background: rgba(20, 20, 20, 0.9);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .cat-header:hover { background: var(--glass-hover); }
+
+        .chevron {
+            width: 20px;
+            height: 20px;
+            transition: transform var(--collapse-duration) var(--ease-spring);
+            opacity: 0.7;
+        }
+
+        .category:has(.items.active) .chevron {
+            transform: rotate(180deg);
+            opacity: 1;
+        }
+
+        .items { 
+            padding: 0 24px; 
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height var(--collapse-duration) var(--ease-spring), 
+                        opacity 0.3s ease, 
+                        padding var(--collapse-duration) var(--ease-spring);
+        }
+        
+        .items.active { 
+            padding: 0 24px 24px 24px;
+            opacity: 1;
+        }
+        
+        .row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end;
+            padding: 16px 0; 
+            font-size: 0.95rem; 
+            border-bottom: 1px solid rgba(255,255,255,0.06); 
+        }
+        .row:last-child { border-bottom: none; }
+        
+        .prod-name {
+            font-weight: 400;
+            color: var(--text);
+            padding-right: 15px;
+            max-width: 75%;
+        }
+
+        .price { 
+            font-weight: 600; 
+            color: var(--accent); 
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+            white-space: nowrap;
+        }
 
         .lang-notice {
             display: none;
             text-align: center;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: #ff9f0a;
-            background: rgba(255, 159, 10, 0.08);
-            border: 1px solid rgba(255, 159, 10, 0.25);
-            border-radius: 12px;
-            padding: 8px 14px;
-            margin: 0 0 15px;
-            max-width: 500px;
+            background: rgba(255, 159, 10, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 159, 10, 0.2);
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin: 0 0 20px;
+            width: 100%;
+            max-width: 540px;
         }
 
-        /* --- Selettore lingua: floating button a ventaglio --- */
+        .loader { 
+            border: 3px solid rgba(255,255,255,0.05); 
+            border-top: 3px solid var(--accent); 
+            border-radius: 50%; 
+            width: 36px; 
+            height: 36px; 
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; 
+            margin: 40px auto 20px; 
+            box-shadow: var(--glow);
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .error-msg { 
+            color: #ff453a; 
+            text-align: center; 
+            padding: 24px; 
+            background: rgba(255,69,58,0.1); 
+            backdrop-filter: blur(10px);
+            border-radius: 20px; 
+            border: 1px solid rgba(255,69,58,0.2); 
+            margin-top: 20px;
+        }
+
         .lang-fab {
             position: fixed;
-            right: 20px;
+            right: 24px;
             bottom: calc(36px + env(safe-area-inset-bottom, 0px));
             z-index: 50;
         }
-        .lang-fab.loading { opacity: 0.6; pointer-events: none; }
+        .lang-fab.loading { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 
-        /* Da qui in su la card del menù (max-width: 500px) resta centrata con
-           margini laterali ampi: ancoriamo il FAB al bordo della card invece
-           che all'angolo della finestra, altrimenti su schermi larghi
-           sembrerebbe perso lontano dal contenuto. */
-        @media (min-width: 561px) {
+        @media (min-width: 600px) {
             .lang-fab {
-                right: calc(50vw - 250px - 8px);
-                bottom: 28px;
+                right: calc(50vw - 270px - 24px);
+                bottom: 36px;
             }
         }
 
         .lang-fab-main {
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             padding: 3px;
-            background: rgba(15, 15, 15, 0.9);
-            border: 1px solid var(--accent);
-            box-shadow: var(--glow), 0 8px 18px rgba(0, 0, 0, 0.5);
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--accent-dim);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255,255,255,0.1);
             cursor: pointer;
             position: relative;
             z-index: 2;
-            animation: fab-pulse 3s ease-in-out infinite;
+            transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease;
         }
-        @keyframes fab-pulse {
-            0%, 100% { box-shadow: 0 0 10px rgba(57, 255, 20, 0.25), 0 8px 18px rgba(0, 0, 0, 0.5); }
-            50% { box-shadow: 0 0 18px rgba(57, 255, 20, 0.5), 0 8px 18px rgba(0, 0, 0, 0.5); }
+        .lang-fab-main:hover {
+            transform: scale(1.05);
+            box-shadow: var(--glow), 0 10px 25px rgba(0, 0, 0, 0.5);
         }
 
         .lang-fan {
             position: absolute;
             right: 0;
             bottom: 0;
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             pointer-events: none;
         }
 
         .lang-fan-btn {
             position: absolute;
-            right: 6px;
-            bottom: 6px;
+            right: 8px;
+            bottom: 8px;
             width: 44px;
             height: 44px;
             border-radius: 50%;
             padding: 2px;
-            background: rgba(15, 15, 15, 0.9);
+            background: rgba(25, 25, 25, 0.9);
+            backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45);
             cursor: pointer;
             opacity: 0;
             transform: translate(0, 0) scale(0.4);
-            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease, border-color 0.2s ease;
+            transition: transform 0.4s var(--ease-spring), opacity 0.3s ease, border-color 0.2s ease;
         }
-        .lang-fan-btn:hover { border-color: var(--accent); }
+        .lang-fan-btn:hover { border-color: var(--accent); transform: scale(1.1) !important; }
 
-        .lang-fab.open .lang-fan-btn {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .lang-fab.open .lang-fan-btn:nth-child(1) { transform: translate(-4px, -68px) scale(1); transition-delay: 0ms; }
-        .lang-fab.open .lang-fan-btn:nth-child(2) { transform: translate(-46px, -54px) scale(1); transition-delay: 40ms; }
-        .lang-fab.open .lang-fan-btn:nth-child(3) { transform: translate(-66px, -16px) scale(1); transition-delay: 80ms; }
-        .lang-fab.open .lang-fan-btn:nth-child(4) { transform: translate(-70px, 26px) scale(1); transition-delay: 120ms; }
+        .lang-fab.open .lang-fan-btn { opacity: 1; pointer-events: auto; }
+        .lang-fab.open .lang-fan-btn:nth-child(1) { transform: translate(-4px, -76px) scale(1); transition-delay: 0ms; }
+        .lang-fab.open .lang-fan-btn:nth-child(2) { transform: translate(-52px, -60px) scale(1); transition-delay: 40ms; }
+        .lang-fab.open .lang-fan-btn:nth-child(3) { transform: translate(-76px, -16px) scale(1); transition-delay: 80ms; }
+        .lang-fab.open .lang-fan-btn:nth-child(4) { transform: translate(-80px, 32px) scale(1); transition-delay: 120ms; }
 
         .flag-img {
             width: 100%;
@@ -167,108 +315,59 @@
             width: 100%;
             height: 100%;
             border-radius: 50%;
-            font-size: 0.65rem;
+            font-size: 0.7rem;
             font-weight: 700;
-            letter-spacing: 0.5px;
             color: var(--accent);
         }
         
-        .category { 
-            background: var(--glass-bg); 
-            backdrop-filter: blur(15px); 
-            border: 1px solid var(--border-color); 
-            border-radius: 20px; 
-            margin-bottom: 15px; 
-            overflow: hidden;
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.07);
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
-        }
-        
-        .cat-header { 
-            padding: 20px; 
-            cursor: pointer; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-weight: 600; 
-            color: var(--accent); 
-            transition: background 0.3s;
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            background: linear-gradient(180deg, rgba(26, 26, 26, 0.92), rgba(16, 16, 16, 0.88));
-            backdrop-filter: blur(15px);
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-        }
-
-        .category:has(.items.active) {
-            box-shadow: 0 16px 38px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(57, 255, 20, 0.15);
-        }
-        
-        .cat-header:hover { background: rgba(57, 255, 20, 0.03); }
-
-        .items { 
-            padding: 0 20px; 
-            max-height: 0;
-            overflow: hidden;
-            opacity: 0;
-            transition: max-height var(--collapse-duration) cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease, padding var(--collapse-duration) ease;
-        }
-        
-        .items.active { 
-            padding: 0 20px 20px 20px;
-            opacity: 1;
-        }
-        
-        .row { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 12px 0; 
-            font-size: 0.95rem; 
-            border-bottom: 1px dashed rgba(255,255,255,0.08); 
-        }
-        .row:last-child { border-bottom: none; }
-        
-        .price { font-weight: 700; color: #fff; letter-spacing: 0.2px; }
-
-        .loader { 
-            border: 3px solid rgba(255,255,255,0.1); 
-            border-top: 3px solid var(--accent); 
-            border-radius: 50%; 
-            width: 30px; 
-            height: 30px; 
-            animation: spin 1s linear infinite; 
-            margin: 30px auto; 
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .error-msg { 
-            color: #ff453a; 
-            text-align: center; 
-            padding: 20px; 
-            background: rgba(255,69,58,0.08); 
-            border-radius: 16px; 
-            border: 1px solid rgba(255,69,58,0.2); 
-            margin-top: 20px;
-        }
-
         footer { 
             margin-top: auto; 
-            padding-top: 50px;
-            padding-bottom: 20px;
+            padding-top: 60px;
+            padding-bottom: 30px;
             text-align: center; 
-            font-size: 0.8rem; 
-            color: #86868b; 
             width: 100%;
+            animation: fadeIn 1s ease 0.5s both;
         }
-        .insta-link { color: var(--accent); text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        footer p { margin: 5px 0; color: var(--text-muted); font-size: 0.85rem; }
+        .insta-link { 
+            color: var(--text); 
+            text-decoration: none; 
+            font-weight: 600; 
+            display: inline-flex; 
+            align-items: center;
+            gap: 6px;
+            margin-top: 15px; 
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
+        .insta-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: var(--accent);
+            border-color: var(--accent-dim);
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo-container">
-            <img src="logo.webp" class="logo-img" alt="YARD Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<h1>MENÙ</h1>';">
+            <img src="logo.webp" class="logo-img" alt="YARD Logo" onerror="this.style.display='none'; this.parentElement.innerHTML='<h1>YARD</h1>';">
         </div>
     </header>
 
@@ -278,7 +377,7 @@
         <!-- Loader iniziale -->
         <div id="loader-wrapper">
             <div class="loader"></div>
-            <p style="text-align:center; color: var(--text); opacity: 0.7; font-size: 14px;" id="loader-text">Caricamento menù...</p>
+            <p style="text-align:center; color: var(--text-muted); font-size: 14px; margin-top: 15px;" id="loader-text">Caricamento menù...</p>
         </div>
     </div>
 
@@ -288,25 +387,25 @@
     </div>
 
     <footer>
-        <p>YARD | Chiosco del parco</p>
+        <p><strong>YARD</strong> | Chiosco del parco</p>
         <p>Parco di San Gavino, Porto Torres (SS)</p>
-        <a href="https://www.instagram.com/yardsangavino/" class="insta-link" target="_blank">Instagram 📷</a>
-        <p style="margin-top:15px; opacity: 0.5;">Designed by Matteo Masia</p>
+        <a href="https://www.instagram.com/yardsangavino/" class="insta-link" target="_blank">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            Instagram
+        </a>
+        <p style="margin-top:25px; opacity: 0.4; font-size: 0.75rem;">Designed by Matteo Masia</p>
     </footer>
 
     <script>
         const SUPABASE_URL = 'https://germswzsfsxxlawqxsgt.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_xXjGt3cuynDUHnlq846e4Q_dk-xwcMa';
         
-        // CORREZIONE FONDAMENTALE: Usiamo 'sb' invece di 'supabase' per evitare conflitti di nome
-        // con l'oggetto globale supabase iniettato dallo script CDN.
         const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Dati grezzi (italiano, fonte di verità) e stato lingua corrente
         let cats = [];
         let prods = [];
         let currentLang = 'it';
-        try { currentLang = localStorage.getItem('yard_lang') || 'it'; } catch (e) { /* storage non disponibile, va bene IT di default */ }
+        try { currentLang = localStorage.getItem('yard_lang') || 'it'; } catch (e) { }
         let nameOverrides = { categories: {}, products: {} };
 
         const LANGS = [
@@ -349,7 +448,6 @@
             document.getElementById('lang-fab-main').setAttribute('aria-expanded', 'false');
         }
 
-        // Chiude il ventaglio se l'utente tocca/clicca fuori dal FAB
         document.addEventListener('click', (e) => {
             const fab = document.getElementById('lang-fab');
             if (fab && fab.classList.contains('open') && !fab.contains(e.target)) {
@@ -368,54 +466,38 @@
             const loaderText = document.getElementById('loader-text');
             
             try {
-                console.log("Inizio fetching dati da Supabase...");
                 loaderText.textContent = "Caricamento categorie...";
-
-                // Leggiamo solo categorie visibili ordinate
                 const { data: catData, error: catErr } = await sb
                     .from('categories')
                     .select('*')
                     .eq('is_visible', true)
                     .order('order_index');
 
-                if (catErr) {
-                    console.error("Errore Categorie:", catErr);
-                    throw new Error("Errore Categorie: " + catErr.message);
-                }
+                if (catErr) throw new Error("Errore Categorie: " + catErr.message);
 
                 loaderText.textContent = "Caricamento prodotti...";
-
-                // Leggiamo solo prodotti visibili ordinati per order_index
                 const { data: prodData, error: prodErr } = await sb
                     .from('products')
                     .select('*')
                     .eq('is_visible', true)
                     .order('order_index');
 
-                if (prodErr) {
-                    console.error("Errore Prodotti:", prodErr);
-                    throw new Error("Errore Prodotti: " + prodErr.message);
-                }
+                if (prodErr) throw new Error("Errore Prodotti: " + prodErr.message);
 
                 cats = catData || [];
                 prods = prodData || [];
-
-                // Nascondiamo il loader
                 loader.style.display = 'none';
-
                 renderLangFab();
 
                 if (currentLang !== 'it') {
-                    // L'utente aveva già scelto una lingua in una visita precedente
                     await applyLanguage(currentLang);
                 } else {
                     renderMenu();
                 }
 
             } catch (error) {
-                console.error("Errore fatale in loadMenu:", error);
+                console.error("Errore in loadMenu:", error);
                 if (loader) loader.style.display = 'none';
-                // Mostra un errore rosso in pagina invece di restare bloccato sul loader
                 container.innerHTML = `
                     <div class="error-msg">
                         <strong>Ops! Impossibile caricare il menù.</strong><br>
@@ -424,18 +506,18 @@
             }
         }
 
-        // Disegna il menù usando i dati grezzi + eventuali traduzioni correnti.
-        // La struttura (ordine, raggruppamento per categoria) viene sempre
-        // dai dati italiani: la lingua sostituisce solo i nomi visualizzati.
         function renderMenu() {
             const container = document.getElementById('menu-container');
 
             if (!cats || cats.length === 0) {
-                container.innerHTML = '<p style="text-align:center; opacity:0.7; padding: 20px;">Nessuna categoria visibile al momento.</p>';
+                container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding: 40px 20px;">Nessuna categoria visibile al momento.</p>';
                 return;
             }
 
             let menuHTML = '';
+            
+            // Icona freccia riutilizzabile
+            const chevronIcon = `<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
 
             cats.forEach(cat => {
                 const catProducts = prods ? prods.filter(p => p.category_id === cat.id) : [];
@@ -451,7 +533,7 @@
                         : p.name;
                     return `
                         <div class="row">
-                            <span>${prodName}</span>
+                            <span class="prod-name">${prodName}</span>
                             <span class="price">€${parseFloat(p.price).toFixed(2)}</span>
                         </div>
                     `;
@@ -460,7 +542,8 @@
                 menuHTML += `
                     <div class="category">
                         <div class="cat-header" onclick="toggleCategory(this)">
-                            ${catName.toUpperCase()} <span class="arrow">▼</span>
+                            ${catName.toUpperCase()} 
+                            ${chevronIcon}
                         </div>
                         <div class="items">
                             ${itemsHTML}
@@ -469,7 +552,7 @@
                 `;
             });
 
-            container.innerHTML = menuHTML || '<p style="text-align:center; opacity:0.7;">Nessun prodotto visibile al momento.</p>';
+            container.innerHTML = menuHTML || '<p style="text-align:center; color: var(--text-muted);">Nessun prodotto visibile al momento.</p>';
         }
 
         function showLangNotice(message) {
@@ -480,10 +563,6 @@
             el.style.display = 'block';
         }
 
-        // Applica una lingua: per IT è istantaneo (nessuna chiamata di rete).
-        // Per le altre lingue interroga /api/translate-menu, che a sua volta
-        // legge dalla cache su Supabase e chiama Gemini solo per le voci
-        // mancanti. In caso di errore, fallback automatico sull'italiano.
         async function applyLanguage(lang) {
             if (lang === 'it') {
                 currentLang = 'it';
@@ -499,21 +578,21 @@
 
             try {
                 const res = await fetch(`/api/translate-menu?lang=${lang}`);
-                if (!res.ok) throw new Error('Servizio di traduzione non disponibile (' + res.status + ')');
+                if (!res.ok) throw new Error('Servizio traduzione non disponibile');
                 const data = await res.json();
 
                 currentLang = lang;
                 nameOverrides = { categories: data.categories || {}, products: data.products || {} };
                 renderLangFab();
                 renderMenu();
-                showLangNotice(data.partial ? 'Alcune voci non sono ancora tradotte: verranno aggiornate a breve.' : null);
+                showLangNotice(data.partial ? 'Alcune voci verranno tradotte a breve.' : null);
             } catch (err) {
                 console.error('Errore traduzione:', err);
                 currentLang = 'it';
                 nameOverrides = { categories: {}, products: {} };
                 renderLangFab();
                 renderMenu();
-                showLangNotice('Traduzione non disponibile al momento: mostro il menù in italiano.');
+                showLangNotice('Traduzione non disponibile, mostro il menù in italiano.');
             } finally {
                 if (fabEl) fabEl.classList.remove('loading');
             }
@@ -521,7 +600,7 @@
 
         window.setLanguage = function(lang) {
             if (lang === currentLang) return;
-            try { localStorage.setItem('yard_lang', lang); } catch (e) { /* storage non disponibile, non blocca la UX */ }
+            try { localStorage.setItem('yard_lang', lang); } catch (e) { }
             applyLanguage(lang);
         };
 
@@ -531,13 +610,11 @@
             const allCategories = Array.from(document.querySelectorAll('.category'));
             const clickedIndex = allCategories.indexOf(element.parentElement);
 
-            // Durata della transizione, letta dalla variabile CSS per restare sempre sincronizzata
             const durationStr = getComputedStyle(document.documentElement).getPropertyValue('--collapse-duration').trim();
-            const collapseDuration = parseFloat(durationStr) * 1000 || 350;
+            const collapseDuration = parseFloat(durationStr) * 1000 || 400;
 
             let mustWaitForCloseAbove = false;
 
-            // Chiude in modo animato tutte le altre categorie aperte
             document.querySelectorAll('.items.active').forEach(otherItems => {
                 if (otherItems === itemsContainer) return;
 
@@ -545,44 +622,39 @@
                 const otherIndex = allCategories.indexOf(otherCategoryDiv);
                 if (otherIndex < clickedIndex) mustWaitForCloseAbove = true;
 
-                // Fissa l'altezza attuale esplicitamente prima di animare verso 0
                 otherItems.style.maxHeight = otherItems.scrollHeight + 'px';
-                void otherItems.offsetHeight; // forza il reflow
+                void otherItems.offsetHeight; 
                 otherItems.style.maxHeight = '0px';
                 otherItems.classList.remove('active');
-
-                const otherArrow = otherCategoryDiv.querySelector('.arrow');
-                if (otherArrow) otherArrow.textContent = '▼';
             });
 
             if (isActive) {
-                // L'utente ha chiuso la categoria che era aperta: nessuno scroll
                 itemsContainer.style.maxHeight = '0px';
                 itemsContainer.classList.remove('active');
-                element.querySelector('.arrow').textContent = '▼';
                 return;
             }
 
-            // Apre la categoria cliccata
             itemsContainer.classList.add('active');
             itemsContainer.style.maxHeight = itemsContainer.scrollHeight + 'px';
-            element.querySelector('.arrow').textContent = '▲';
 
-            const scrollHeaderIntoView = () => {
-                const headerTop = element.getBoundingClientRect().top + window.scrollY;
-                window.scrollTo({ top: headerTop, behavior: 'smooth' });
+            const checkAndScroll = () => {
+                const rect = element.getBoundingClientRect();
+                // Scrolla solo se il titolo della categoria finisce fuori dallo schermo in alto 
+                // (es: a causa della chiusura di una categoria superiore) o è troppo nascosto in basso
+                if (rect.top < 10 || rect.bottom > (window.innerHeight || document.documentElement.clientHeight) - 20) {
+                    element.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             };
 
             if (mustWaitForCloseAbove) {
-                // Aspetta che la chiusura delle categorie sopra finisca, altrimenti
-                // la posizione dell'header cambierebbe mentre lo scroll è già in corso
-                setTimeout(scrollHeaderIntoView, collapseDuration);
+                // Aspettiamo che l'animazione di chiusura dell'elemento sopra finisca prima di ricalcolare
+                setTimeout(checkAndScroll, collapseDuration + 10);
             } else {
-                requestAnimationFrame(scrollHeaderIntoView);
+                // L'elemento si apre verso il basso, controlliamo subito se esce dallo schermo
+                setTimeout(checkAndScroll, 50);
             }
         };
 
-        // Avvia il caricamento appena lo script viene letto
         loadMenu();
     </script>
 </body>
