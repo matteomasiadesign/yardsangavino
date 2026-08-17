@@ -2,7 +2,8 @@ name: Keep Supabase Alive
 
 on:
   schedule:
-    - cron: '0 0 */3 * *'
+    # Ogni 12 ore - margine di sicurezza molto ampio rispetto ai 7 giorni di timeout
+    - cron: '0 */12 * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,11 +12,32 @@ jobs:
     steps:
       - name: Esegui Ping su Supabase
         run: |
-          RESPONSE=$(curl -f -s -S -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=*&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Cache-Control: no-cache" \
-          -H "x-github-run-id: ${{ github.run_id }}")
+          echo "=== Keep-Alive Ping - $(date) ==="
           
-          echo "Risposta da Supabase:"
-          echo $RESPONSE
+          # Verifica che i secrets siano configurati
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "ERROR: SUPABASE_URL o SUPABASE_ANON_KEY non configurati nei secrets!"
+            exit 1
+          fi
+          
+          echo "URL: ${{ secrets.SUPABASE_URL }}"
+
+          # Ping alla tabella products.
+          # Nota: gli step girano con `bash -e`, quindi il curl va dentro un `if`
+          # (altrimenti lo step muore sull'assegnazione e il messaggio d'errore
+          # qui sotto non verrebbe mai stampato).
+          if RESPONSE=$(curl -f -s -S -w '\nHTTP %{http_code} in %{time_total}s' \
+            -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Cache-Control: no-cache"); then
+            echo ""
+            echo "=== Risposta da Supabase ==="
+            echo "$RESPONSE"
+            echo ""
+            echo "✓ Keep-alive ping eseguito con successo"
+          else
+            CURL_EXIT=$?
+            echo "✗ Errore nel ping: exit code $CURL_EXIT"
+            exit 1
+          fi

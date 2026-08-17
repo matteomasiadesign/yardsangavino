@@ -18,6 +18,12 @@ const { translateBatch } = require('../lib/gemini');
 
 const SUPPORTED_LANGS = ['en', 'es', 'fr', 'de'];
 
+// Solo l'account admin può far partire traduzioni: un token Supabase valido
+// qualsiasi (se un giorno le registrazioni pubbliche venissero aperte sul
+// progetto) non deve poter consumare quota Gemini.
+// Sovrascrivibile con la env var ADMIN_EMAIL su Vercel.
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'adminyard@yard.it').toLowerCase();
+
 const TABLE_CONFIG = {
   products: { cacheTable: 'product_translation_cache', fkColumn: 'product_id' },
   categories: { cacheTable: 'category_translation_cache', fkColumn: 'category_id' }
@@ -39,6 +45,10 @@ module.exports = async function handler(req, res) {
   const { data: userData, error: authErr } = await supabaseAdmin.auth.getUser(token);
   if (authErr || !userData?.user) {
     res.status(401).json({ error: 'Sessione non valida.' });
+    return;
+  }
+  if ((userData.user.email || '').toLowerCase() !== ADMIN_EMAIL) {
+    res.status(403).json({ error: 'Utente non autorizzato.' });
     return;
   }
 

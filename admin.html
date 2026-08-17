@@ -7,7 +7,7 @@
     
     <!-- Librerie: Supabase e SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
 
     <style>
         :root {
@@ -114,10 +114,10 @@
 
             <!-- TABS -->
             <div class="tabs">
-                <div class="tab-btn active" onclick="switchTab('add')">Aggiungi</div>
-                <div class="tab-btn" onclick="switchTab('products')">Gestisci Prodotti</div>
-                <div class="tab-btn" onclick="switchTab('categories')">Gestisci Categorie</div>
-                <div class="tab-btn" onclick="switchTab('reorder')">Riordina Menù</div>
+                <div class="tab-btn active" onclick="switchTab('add', this)">Aggiungi</div>
+                <div class="tab-btn" onclick="switchTab('products', this)">Gestisci Prodotti</div>
+                <div class="tab-btn" onclick="switchTab('categories', this)">Gestisci Categorie</div>
+                <div class="tab-btn" onclick="switchTab('reorder', this)">Riordina Menù</div>
             </div>
 
             <!-- 1. PANNELLO AGGIUNGI -->
@@ -165,11 +165,11 @@
                 <h3>1. Ordine Categorie</h3>
                 <p style="font-size:13px; color:var(--text-secondary); margin-top:-10px;">Trascina le categorie per decidere in che ordine appariranno sul sito.</p>
                 <div id="reorder-cats-list" class="list-container sortable-group-cats" style="margin-bottom: 15px;"></div>
-                <button onclick="saveCategoriesOrder()">SALVA ORDINE CATEGORIE</button>
+                <button onclick="saveCategoriesOrder(this)">SALVA ORDINE CATEGORIE</button>
 
                 <h3 style="margin-top: 40px;">2. Ordine Prodotti</h3>
                 <p style="font-size:13px; color:var(--text-secondary); margin-top:-10px;">Trascina i prodotti all'interno della loro categoria.</p>
-                <button onclick="saveProductsOrder()" style="margin-bottom: 20px;">SALVA ORDINE PRODOTTI</button>
+                <button onclick="saveProductsOrder(this)" style="margin-bottom: 20px;">SALVA ORDINE PRODOTTI</button>
                 <div id="reorder-prods-container"></div>
             </div>
         </div>
@@ -213,6 +213,13 @@
         // Stato Globale
         let categories = [];
         let products = [];
+
+        // Tutti i nomi vengono dal DB e finiscono in innerHTML: senza escape un
+        // nome con virgolette o < > romperebbe il markup della lista.
+        const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+        function esc(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, ch => HTML_ESCAPES[ch]);
+        }
 
         // --- AUTH ---
         async function checkAuth() {
@@ -264,11 +271,13 @@
         }
 
         // --- TABS & MODALS ---
-        function switchTab(tabId) {
+        // Il tab cliccato arriva come parametro (this) invece che dal
+        // vecchio `event` globale, che è una variabile non standard.
+        function switchTab(tabId, tabBtn) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('panel-' + tabId).classList.add('active');
-            event.target.classList.add('active');
+            if (tabBtn) tabBtn.classList.add('active');
         }
 
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
@@ -296,7 +305,7 @@
             let filterHTML = `<option value="">Tutte le Categorie</option>`;
             
             categories.forEach(c => {
-                const opt = `<option value="${c.id}">${c.name}</option>`;
+                const opt = `<option value="${c.id}">${esc(c.name)}</option>`;
                 optionsHTML += opt;
                 filterHTML += opt;
             });
@@ -362,11 +371,11 @@
                 return `
                 <div class="list-item ${p.is_visible ? '' : 'item-hidden'}">
                     <div class="item-info">
-                        <span class="item-name">${p.name} - €${parseFloat(p.price).toFixed(2)}</span>
-                        <span class="item-cat">${catName} ${p.is_visible ? '' : '(Nascosto)'}</span>
+                        <span class="item-name">${esc(p.name)} - €${parseFloat(p.price).toFixed(2)}</span>
+                        <span class="item-cat">${esc(catName)} ${p.is_visible ? '' : '(Nascosto)'}</span>
                     </div>
                     <div class="actions">
-                        <button class="btn-sm btn-edit" onclick="openEditProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, ${p.category_id})">Modifica</button>
+                        <button class="btn-sm btn-edit" onclick="openEditProduct(${p.id})">Modifica</button>
                         <button class="btn-sm btn-hide" onclick="toggleVisibility('products', ${p.id}, ${p.is_visible})">${p.is_visible ? 'Nascondi' : 'Mostra'}</button>
                         <button class="btn-sm btn-delete" onclick="deleteItem('products', ${p.id})">Elimina</button>
                     </div>
@@ -375,11 +384,17 @@
             }).join('');
         }
 
-        function openEditProduct(id, name, price, catId) {
-            document.getElementById('editProdId').value = id;
-            document.getElementById('editProdName').value = name;
-            document.getElementById('editProdPrice').value = price;
-            document.getElementById('editProdCat').value = catId;
+        // Riceve solo l'id e rilegge il prodotto dallo stato in memoria: i nomi non
+        // transitano più dentro un attributo onclick (dove una virgoletta doppia
+        // spezzava l'HTML).
+        function openEditProduct(id) {
+            const p = products.find(x => String(x.id) === String(id));
+            if (!p) { alert("Prodotto non trovato, ricarica la pagina."); return; }
+
+            document.getElementById('editProdId').value = p.id;
+            document.getElementById('editProdName').value = p.name;
+            document.getElementById('editProdPrice').value = p.price;
+            document.getElementById('editProdCat').value = p.category_id;
             openModal('modalEditProduct');
         }
 
@@ -411,11 +426,11 @@
             container.innerHTML = categories.map(c => `
                 <div class="list-item ${c.is_visible ? '' : 'item-hidden'}">
                     <div class="item-info">
-                        <span class="item-name">${c.name}</span>
+                        <span class="item-name">${esc(c.name)}</span>
                         <span class="item-cat">Categoria ${c.is_visible ? '' : '(Nascosta)'}</span>
                     </div>
                     <div class="actions">
-                        <button class="btn-sm btn-edit" onclick="openEditCategory(${c.id}, '${c.name.replace(/'/g, "\\'")}')">Modifica</button>
+                        <button class="btn-sm btn-edit" onclick="openEditCategory(${c.id})">Modifica</button>
                         <button class="btn-sm btn-hide" onclick="toggleVisibility('categories', ${c.id}, ${c.is_visible})">${c.is_visible ? 'Nascondi' : 'Mostra'}</button>
                         <button class="btn-sm btn-delete" onclick="deleteItem('categories', ${c.id})">Elimina</button>
                     </div>
@@ -423,9 +438,12 @@
             `).join('');
         }
 
-        function openEditCategory(id, name) {
-            document.getElementById('editCatId').value = id;
-            document.getElementById('editCatName').value = name;
+        function openEditCategory(id) {
+            const c = categories.find(x => String(x.id) === String(id));
+            if (!c) { alert("Categoria non trovata, ricarica la pagina."); return; }
+
+            document.getElementById('editCatId').value = c.id;
+            document.getElementById('editCatName').value = c.name;
             openModal('modalEditCategory');
         }
 
@@ -466,7 +484,7 @@
                 <div class="list-item" data-id="${c.id}">
                     <div style="display:flex; align-items:center;">
                         <span class="drag-handle">☰</span>
-                        <span class="item-name">${c.name}</span>
+                        <span class="item-name">${esc(c.name)}</span>
                     </div>
                 </div>
             `).join('');
@@ -483,13 +501,13 @@
                 if(catProds.length > 0) {
                     prodHTML += `
                         <div class="category-reorder-group">
-                            <div style="color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; font-size:14px;">${c.name}</div>
+                            <div style="color:var(--accent); font-weight:bold; margin-bottom:10px; text-transform:uppercase; font-size:14px;">${esc(c.name)}</div>
                             <div class="list-container sortable-group-prods" style="margin-top:0;">
                                 ${catProds.map(p => `
                                     <div class="list-item" data-id="${p.id}">
                                         <div style="display:flex; align-items:center;">
                                             <span class="drag-handle">☰</span>
-                                            <span class="item-name">${p.name}</span>
+                                            <span class="item-name">${esc(p.name)}</span>
                                         </div>
                                     </div>
                                 `).join('')}
@@ -507,16 +525,24 @@
             });
         }
 
-        async function saveCategoriesOrder() {
+        // Aggiornamenti in parallelo invece che in fila: con 60+ prodotti la
+        // versione sequenziale impiegava una decina di secondi.
+        async function applyOrderUpdates(table, updates) {
+            const results = await Promise.all(updates.map(async (u) => {
+                const { error } = await sb.from(table).update({ order_index: u.order_index }).eq('id', u.id);
+                return error ? `#${u.id}: ${error.message}` : null;
+            }));
+            return results.filter(Boolean);
+        }
+
+        async function saveCategoriesOrder(btn) {
             const items = document.querySelectorAll('#reorder-cats-list .list-item');
             const updates = Array.from(items).map((item, index) => ({ id: parseInt(item.getAttribute('data-id')), order_index: index }));
 
-            const btn = event.target; btn.textContent = "Salvataggio...";
-            const errors = [];
-            for (const u of updates) {
-                const { error } = await sb.from('categories').update({ order_index: u.order_index }).eq('id', u.id);
-                if (error) errors.push(`#${u.id}: ${error.message}`);
-            }
+            btn.disabled = true;
+            btn.textContent = "Salvataggio...";
+            const errors = await applyOrderUpdates('categories', updates);
+
             if (errors.length) {
                 alert("Attenzione, alcuni aggiornamenti sono falliti:\n" + errors.join('\n'));
             } else {
@@ -524,18 +550,26 @@
             }
             loadData();
             btn.textContent = "SALVA ORDINE CATEGORIE";
+            btn.disabled = false;
         }
 
-        async function saveProductsOrder() {
-            const items = document.querySelectorAll('.sortable-group-prods .list-item');
-            const updates = Array.from(items).map((item, index) => ({ id: parseInt(item.getAttribute('data-id')), order_index: index }));
+        async function saveProductsOrder(btn) {
+            // L'indice riparte da 0 in OGNI categoria: deve restare coerente con
+            // addProduct(), che assegna order_index = numero di prodotti già
+            // presenti in quella categoria. Numerando invece di seguito su tutte
+            // le categorie, il prodotto aggiunto dopo un riordino finiva in mezzo
+            // alla lista invece che in fondo.
+            const updates = [];
+            document.querySelectorAll('.sortable-group-prods').forEach(group => {
+                group.querySelectorAll('.list-item').forEach((item, index) => {
+                    updates.push({ id: parseInt(item.getAttribute('data-id')), order_index: index });
+                });
+            });
 
-            const btn = event.target; btn.textContent = "Salvataggio...";
-            const errors = [];
-            for (const u of updates) {
-                const { error } = await sb.from('products').update({ order_index: u.order_index }).eq('id', u.id);
-                if (error) errors.push(`#${u.id}: ${error.message}`);
-            }
+            btn.disabled = true;
+            btn.textContent = "Salvataggio...";
+            const errors = await applyOrderUpdates('products', updates);
+
             if (errors.length) {
                 alert("Attenzione, alcuni aggiornamenti sono falliti:\n" + errors.join('\n'));
             } else {
@@ -543,6 +577,7 @@
             }
             loadData();
             btn.textContent = "SALVA ORDINE PRODOTTI";
+            btn.disabled = false;
         }
 
         window.onload = checkAuth;
