@@ -11,33 +11,59 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Esegui Ping su Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
+          set -u
+
           echo "=== Keep-Alive Ping - $(date) ==="
-          
-          # Verifica che i secrets siano configurati
-          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
             echo "ERROR: SUPABASE_URL o SUPABASE_ANON_KEY non configurati nei secrets!"
             exit 1
           fi
-          
-          echo "URL: ${{ secrets.SUPABASE_URL }}"
 
-          # Ping alla tabella products.
-          # Nota: gli step girano con `bash -e`, quindi il curl va dentro un `if`
-          # (altrimenti lo step muore sull'assegnazione e il messaggio d'errore
-          # qui sotto non verrebbe mai stampato).
-          if RESPONSE=$(curl -f -s -S -w '\nHTTP %{http_code} in %{time_total}s' \
-            -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/products?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
-            -H "Cache-Control: no-cache"); then
-            echo ""
-            echo "=== Risposta da Supabase ==="
-            echo "$RESPONSE"
-            echo ""
-            echo "✓ Keep-alive ping eseguito con successo"
-          else
-            CURL_EXIT=$?
-            echo "✗ Errore nel ping: exit code $CURL_EXIT"
+          echo "URL: $SUPABASE_URL"
+
+          endpoint="${SUPABASE_URL%/}/rest/v1/products?select=id&limit=1"
+          response_file="$(mktemp)"
+
+          http_code=$(curl \
+            --silent \
+            --show-error \
+            --output "$response_file" \
+            --write-out '%{http_code}' \
+            --connect-timeout 15 \
+            --max-time 60 \
+            --retry 4 \
+            --retry-delay 10 \
+            --retry-max-time 180 \
+            --retry-all-errors \
+            --request GET "$endpoint" \
+            --header "apikey: $SUPABASE_ANON_KEY" \
+            --header "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            --header "Cache-Control: no-cache")
+
+          curl_exit=$?
+
+          echo "HTTP status: $http_code"
+          echo ""
+          echo "=== Risposta da Supabase ==="
+          cat "$response_file"
+          echo ""
+
+          if [ "$curl_exit" -ne 0 ]; then
+            echo "✗ Errore nel ping: exit code $curl_exit"
             exit 1
           fi
+
+          case "$http_code" in
+            2*)
+              echo "✓ Keep-alive ping eseguito con successo"
+              ;;
+            *)
+              echo "✗ Supabase ha restituito HTTP $http_code"
+              exit 1
+              ;;
+          esac
